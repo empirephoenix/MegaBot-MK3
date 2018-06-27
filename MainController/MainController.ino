@@ -10,10 +10,6 @@
 #define CHANNEL_7 6
 #define CHANNEL_8 7
 
-#define MAX_PULSE_ON 2000
-#define MIN_PULSE_OFF 1200
-#define MIN_PULSE_ON 950
-
 byte last_flank[NUM_CHANNELS];
 
 bool isSonicBack;

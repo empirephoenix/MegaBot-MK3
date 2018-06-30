@@ -1,5 +1,3 @@
-#include <Wire.h>
-
 #define NUM_CHANNELS 8
 #define CHANNEL_1 0
 #define CHANNEL_2 1
@@ -10,9 +8,10 @@
 #define CHANNEL_7 6
 #define CHANNEL_8 7
 
+#include "MCP4725.h"
+
 byte last_flank[NUM_CHANNELS];
 
-bool isSonicBack;
 volatile int receiver_input[NUM_CHANNELS];
 volatile int raw_inputs[NUM_CHANNELS];
 
@@ -125,14 +124,17 @@ unsigned long loop_timer;
  *
  * @desc  This function is the function that gets run on arduino startup.
  */
+
+MCP4725 m1;
 void setup() {
-  Wire.begin();
   Serial.begin(115200);
   
   PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
   PCMSK0 |= B11111111;
-    
-  isSonicBack = true;
+
+  m1.begin(0x62);
+  m1.setFastMode();
+  m1.setVoltageFast(128);
 
   Serial.println("Initializing gyro...");
   Serial.println("done.");

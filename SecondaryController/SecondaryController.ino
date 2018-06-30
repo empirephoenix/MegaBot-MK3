@@ -46,6 +46,7 @@ void setup() {
   if (min + 200 > max) {
     calibrate();
   }
+  
 
   PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
   PCMSK0 |= B00000101;

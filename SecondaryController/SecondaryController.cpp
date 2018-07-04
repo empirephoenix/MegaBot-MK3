@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+
 #define EXTEND 11
 #define RETRACT 9
 #define NUM_READINGS 10
@@ -7,8 +10,6 @@
 #define CHANNEL_2 1
 #define DELTA_DRIVE_START 50
 #define DELTA_DRIVE_MIN_PWR 230
-
-#include <EEPROM.h>
 
 int targetPos = 600;
 int deadBand = 5;
@@ -29,29 +30,6 @@ volatile int raw_inputs[NUM_CHANNELS];
 unsigned long current_time_int0, upflank_time[NUM_CHANNELS];
 unsigned long loop_timer;
 
-void setup() {
-  for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
-    readings[thisReading] = 0;
-  }
-
-  Serial.begin(115200);
-  pinMode(A1, INPUT);
-
-  min = eepromReadInt(0);
-  max = eepromReadInt(2);
-  Serial.print("reading calibration min ");
-  Serial.print(min);
-  Serial.print(" max ");
-  Serial.println(max);
-  if (min + 200 > max) {
-    calibrate();
-  }
-  
-
-  PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
-  PCMSK0 |= B00000101;
-}
-
 void eepromWriteInt(int adr, int wert) {
   byte low = wert & 0xFF;
   byte high = (wert >> 8) & 0xFF;
@@ -64,6 +42,41 @@ int eepromReadInt(int adr) {
   byte low = EEPROM.read(adr);
   byte high = EEPROM.read(adr + 1);
   return low + ((high << 8) & 0xFF00);
+}
+
+
+
+int deltaDriveCalc(int delta) {
+  if (delta > DELTA_DRIVE_START) {
+    return 0;
+  }
+  int pwr = map(delta, 0, DELTA_DRIVE_START, DELTA_DRIVE_MIN_PWR, 0);
+  Serial.print(delta);
+  Serial.print(" ");
+  Serial.println(pwr);
+  return pwr;
+}
+
+void limit_receiver_input(byte n) {
+  int rc_signal = raw_inputs[n];
+  if (rc_signal > 2000) rc_signal = 2000;
+  if (rc_signal < 1000) rc_signal = 1000;
+  receiver_input[n] = rc_signal;
+}
+
+void extend(int delta) {
+  analogWrite(EXTEND, 255);
+  analogWrite(RETRACT, deltaDriveCalc(delta));
+}
+
+void retract(int delta) {
+  analogWrite(EXTEND, deltaDriveCalc(delta));
+  analogWrite(RETRACT, 255);
+}
+
+void stop() {
+  analogWrite(EXTEND, 255);
+  analogWrite(RETRACT, 255);
 }
 
 void calibrate() {
@@ -96,32 +109,6 @@ void calibrate() {
   eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 0, min);
   eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 2, max);
   targetPos = (max - min) / 2 + min;
-}
-
-int deltaDriveCalc(int delta) {
-  if (delta > DELTA_DRIVE_START) {
-    return 0;
-  }
-  int pwr = map(delta, 0, DELTA_DRIVE_START, DELTA_DRIVE_MIN_PWR, 0);
-  Serial.print(delta);
-  Serial.print(" ");
-  Serial.println(pwr);
-  return pwr;
-}
-
-void extend(int delta) {
-  analogWrite(EXTEND, 255);
-  analogWrite(RETRACT, deltaDriveCalc(delta));
-}
-
-void retract(int delta) {
-  analogWrite(EXTEND, deltaDriveCalc(delta));
-  analogWrite(RETRACT, 255);
-}
-
-void stop() {
-  analogWrite(EXTEND, 255);
-  analogWrite(RETRACT, 255);
 }
 
 void loop() {
@@ -157,13 +144,6 @@ void loop() {
   targetPos = map(receiver_input[0], 1000, 2000, min, max);
 }
 
-void limit_receiver_input(byte n) {
-  int rc_signal = raw_inputs[n];
-  if (rc_signal > 2000) rc_signal = 2000;
-  if (rc_signal < 1000) rc_signal = 1000;
-  receiver_input[n] = rc_signal;
-}
-
 ISR(PCINT0_vect) {
   current_time_int0 = micros();
 
@@ -190,4 +170,26 @@ ISR(PCINT0_vect) {
     last_flank[CHANNEL_2] = 0;
     raw_inputs[CHANNEL_2] = current_time_int0 - upflank_time[CHANNEL_2];
   }
+}
+
+void setup() {
+  for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
+    readings[thisReading] = 0;
+  }
+
+  Serial.begin(115200);
+  pinMode(A1, INPUT);
+
+  min = eepromReadInt(0);
+  max = eepromReadInt(2);
+  Serial.print("reading calibration min ");
+  Serial.print(min);
+  Serial.print(" max ");
+  Serial.println(max);
+  if (min + 200 > max) {
+    calibrate();
+  }
+
+  PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
+  PCMSK0 |= B00000101;
 }

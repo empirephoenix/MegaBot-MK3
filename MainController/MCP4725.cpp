@@ -1,5 +1,5 @@
 #include "Arduino.h"
-#include <SoftWire.h>
+#include <Wire.h>
 #include "MCP4725.h"
 /*See page 19 of the MCP4726 DataSheet.
  *[C2,C1]=00 -- Fast Mode

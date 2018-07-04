@@ -1,5 +1,6 @@
-#define EXTEND 11
-#define RETRACT 9
+#define EXTEND 9
+#define RETRACT 11
+#define LED_DATA 7
 #define NUM_READINGS 10
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
 #define NUM_CHANNELS 2
@@ -7,8 +8,12 @@
 #define CHANNEL_2 1
 #define DELTA_DRIVE_START 50
 #define DELTA_DRIVE_MIN_PWR 230
+#define SERVO_STOP_CYCLES 100
 
 #include <EEPROM.h>
+#include <FastLED.h>
+
+CRGB leds[1];
 
 int targetPos = 600;
 int deadBand = 5;
@@ -21,6 +26,8 @@ int max = -1;
 int readings[NUM_READINGS];
 int readIndex = 0;
 int lastPos = 0;
+int blockingCount = 0;
+bool blocking = false;
 
 byte last_flank[NUM_CHANNELS];
 volatile int receiver_input[NUM_CHANNELS];
@@ -33,6 +40,12 @@ void setup() {
   for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
     readings[thisReading] = 0;
   }
+
+  FastLED.addLeds<WS2812, LED_DATA, GRB>(leds, 1);
+  leds[0] = CRGB::Green;
+  FastLED.setBrightness(64);
+  FastLED.show();
+  
 
   Serial.begin(115200);
   pinMode(A1, INPUT);
@@ -108,12 +121,12 @@ int deltaDriveCalc(int delta) {
   return pwr;
 }
 
-void extend(int delta) {
+void retract(int delta) {
   analogWrite(EXTEND, 255);
   analogWrite(RETRACT, deltaDriveCalc(delta));
 }
 
-void retract(int delta) {
+void extend(int delta) {
   analogWrite(EXTEND, deltaDriveCalc(delta));
   analogWrite(RETRACT, 255);
 }
@@ -124,6 +137,7 @@ void stop() {
 }
 
 void loop() {
+  
   total = total - readings[readIndex];
   readings[readIndex] = analogRead(A1);
   total = total + readings[readIndex];
@@ -131,29 +145,35 @@ void loop() {
   if (readIndex >= NUM_READINGS) {
     readIndex = 0;
   }
+  
   int curPos = total / NUM_READINGS;
-
-  if (Serial.available() > 1) {
-    int servoSignal = Serial.parseInt();
-    targetPos = map(servoSignal, 1000, 2000, min, max);
-    Serial.print("New target");
-    Serial.println(targetPos);
-    if (servoSignal == -1) {
-      calibrate();
-    }
-  }
-  int delta = abs(targetPos - curPos);
-  if (curPos < (targetPos - deadBand)) {
-    retract(delta);
-  } else if (curPos > (targetPos + deadBand)) {
-    extend(delta);
-  } else {
-    stop();
-  }
 
   limit_receiver_input(CHANNEL_1);
   limit_receiver_input(CHANNEL_2);
   targetPos = map(receiver_input[0], 1000, 2000, min, max);
+
+  int delta = abs(targetPos - curPos);
+
+  if (blocking) {
+    if(--blockingCount == 0) blocking = false;
+    stop();
+  } else {
+    
+
+
+    if (curPos < (targetPos - deadBand)) {
+      retract(delta);
+      leds[0] = CRGB::Red;
+    } else if (curPos > (targetPos + deadBand)) {
+      extend(delta);
+      leds[0] = CRGB::Blue;
+    } else {
+      stop();
+      leds[0] = CRGB::Green;
+    }
+    FastLED.show();
+  }
+  lastPos = curPos;
 }
 
 void limit_receiver_input(byte n) {

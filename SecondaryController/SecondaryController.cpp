@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+
 #define EXTEND 9
 #define RETRACT 11
 #define LED_DATA 7
@@ -137,7 +140,6 @@ void stop() {
 }
 
 void loop() {
-  
   total = total - readings[readIndex];
   readings[readIndex] = analogRead(A1);
   total = total + readings[readIndex];
@@ -145,7 +147,6 @@ void loop() {
   if (readIndex >= NUM_READINGS) {
     readIndex = 0;
   }
-  
   int curPos = total / NUM_READINGS;
 
   limit_receiver_input(CHANNEL_1);

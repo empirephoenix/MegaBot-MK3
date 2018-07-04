@@ -1,5 +1,7 @@
+#include "SecondaryController.h"
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <FastLED.h>
 
 #define EXTEND 9
 #define RETRACT 11
@@ -12,9 +14,6 @@
 #define DELTA_DRIVE_START 50
 #define DELTA_DRIVE_MIN_PWR 230
 #define SERVO_STOP_CYCLES 100
-
-#include <EEPROM.h>
-#include <FastLED.h>
 
 CRGB leds[1];
 
@@ -39,32 +38,11 @@ volatile int raw_inputs[NUM_CHANNELS];
 unsigned long current_time_int0, upflank_time[NUM_CHANNELS];
 unsigned long loop_timer;
 
-void setup() {
-  for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
-    readings[thisReading] = 0;
-  }
-
-  FastLED.addLeds<WS2812, LED_DATA, GRB>(leds, 1);
-  leds[0] = CRGB::Green;
-  FastLED.setBrightness(64);
-  FastLED.show();
-  
-
-  Serial.begin(115200);
-  pinMode(A1, INPUT);
-
-  min = eepromReadInt(0);
-  max = eepromReadInt(2);
-  Serial.print("reading calibration min ");
-  Serial.print(min);
-  Serial.print(" max ");
-  Serial.println(max);
-  if (min + 200 > max) {
-    calibrate();
-  }
-
-  PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
-  PCMSK0 |= B00000101;
+void limit_receiver_input(byte n) {
+  int rc_signal = raw_inputs[n];
+  if (rc_signal > 2000) rc_signal = 2000;
+  if (rc_signal < 1000) rc_signal = 1000;
+  receiver_input[n] = rc_signal;
 }
 
 void eepromWriteInt(int adr, int wert) {
@@ -139,6 +117,34 @@ void stop() {
   analogWrite(RETRACT, 255);
 }
 
+void setup() {
+  for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
+    readings[thisReading] = 0;
+  }
+
+  FastLED.addLeds<WS2812, LED_DATA, GRB>(leds, 1);
+  leds[0] = CRGB::Green;
+  FastLED.setBrightness(64);
+  FastLED.show();
+
+
+  Serial.begin(115200);
+  pinMode(A1, INPUT);
+
+  min = eepromReadInt(0);
+  max = eepromReadInt(2);
+  Serial.print("reading calibration min ");
+  Serial.print(min);
+  Serial.print(" max ");
+  Serial.println(max);
+  if (min + 200 > max) {
+    calibrate();
+  }
+
+  PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
+  PCMSK0 |= B00000101;
+}
+
 void loop() {
   total = total - readings[readIndex];
   readings[readIndex] = analogRead(A1);
@@ -175,13 +181,6 @@ void loop() {
     FastLED.show();
   }
   lastPos = curPos;
-}
-
-void limit_receiver_input(byte n) {
-  int rc_signal = raw_inputs[n];
-  if (rc_signal > 2000) rc_signal = 2000;
-  if (rc_signal < 1000) rc_signal = 1000;
-  receiver_input[n] = rc_signal;
 }
 
 ISR(PCINT0_vect) {

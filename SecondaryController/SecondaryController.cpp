@@ -3,6 +3,7 @@
 #include <EEPROM.h>
 #include <FastLED.h>
 
+
 #define EXTEND 9
 #define RETRACT 11
 #define LED_DATA 7
@@ -12,7 +13,15 @@
 #define CHANNEL_2 1
 #define DELTA_DRIVE_START 50
 #define DELTA_DRIVE_MIN_PWR 230
-#define SERVO_STOP_CYCLES 100
+#define SERVO_STOP_CYCLES 50
+
+#define COLOR_DIM_GREEN CRGB(0, 32, 0)
+#define COLOR_EXTEND CRGB::Olive
+#define COLOR_RETRACT CRGB::Lime
+#define COLOR_CALIBRATE_HOLD CRGB::Aqua
+#define COLOR_CALIBRATE_EXECUTE CRGB::Yellow
+#define COLOR_MOTOR_BLOCKING CRGB::White
+#define COLOR_ERROR CRGB::Red
 
 CRGB leds[1];
 
@@ -25,7 +34,7 @@ int calibrateCount = 0;
 int min = -1;
 int max = -1;
 
-int lastPos = 0;
+int lastPos = 0, lastDir = 0;
 int blockingCount = 0;
 bool blocking = false;
 
@@ -33,8 +42,10 @@ byte last_flank[NUM_CHANNELS];
 volatile int receiver_input[NUM_CHANNELS];
 volatile int raw_inputs[NUM_CHANNELS];
 //not volatile only interrupt handler
-unsigned long current_time_int0, upflank_time[NUM_CHANNELS];
+unsigned long current_time_int0;
+unsigned long upflank_time[NUM_CHANNELS];
 unsigned long loop_timer;
+unsigned long diff;
 
 void eepromWriteInt(int adr, int wert) {
 	byte low = wert & 0xFF;
@@ -134,14 +145,13 @@ void setup() {
 }
 
 void loop() {
-
 	if (!digitalRead(13)) {
 		calibrateCount++;
-		leds[0] = CRGB::Aqua;
+		leds[0] = COLOR_CALIBRATE_HOLD;
 		Serial.println(calibrateCount);
 		if (calibrateCount== 2000) {
 			calibrateCount = 0;
-			leds[0] = CRGB::Yellow;
+			leds[0] = COLOR_CALIBRATE_EXECUTE;
 			calibrate();
 		}
 	} else {
@@ -157,25 +167,53 @@ void loop() {
 
 	int delta = abs(targetPos - curPos);
 
+	lastPos = curPos;
+
 	if (blocking) {
 		if (--blockingCount == 0)
 			blocking = false;
 		stop();
+		leds[0] = COLOR_MOTOR_BLOCKING;
 	} else {
 		if (curPos < (targetPos - deadBand)) {
+			if (lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+
+			}
 			retract(delta);
 			if (calibrateCount < 5)
-				leds[0] = CRGB::Red;
+				leds[0] = COLOR_RETRACT;
 		} else if (curPos > (targetPos + deadBand)) {
+			if (!lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+			}
 			extend(delta);
 			if (calibrateCount < 5)
-				leds[0] = CRGB::Blue;
+				leds[0] = COLOR_EXTEND;
 		} else {
 			stop();
-			leds[0] = CRGB(0, 32, 0);
+			leds[0] = COLOR_DIM_GREEN;
 		}
 	}
-	lastPos = curPos;
+
+	Serial.print(micros());
+	Serial.print(" ");
+	Serial.print(current_time_int0);
+	Serial.print(" ");
+	diff = micros() - current_time_int0;
+	Serial.println(diff);
+
+	if(diff > 250000) {
+		leds[0] = COLOR_ERROR;
+		FastLED.show();
+	}
+
 }
 
 ISR(PCINT0_vect) {

@@ -134,9 +134,10 @@ void setup() {
   PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
   PCMSK0 |= B11111111;
 
-  m1.begin(0x62);
+  m1.begin(0x60);
   m1.setFastMode();
-  m1.setVoltageFast(128);
+
+  m1.setVoltage(map(3.3,0,5,0,4095));
 
   Serial.println("Done init");
 }

@@ -1,12 +1,12 @@
 #include "SecondaryController.h"
-#include <Arduino.h>
 #include <EEPROM.h>
-#include <FastLED.h>
-
+#include <APA102.h>
 
 #define EXTEND 9
 #define RETRACT 11
 #define LED_DATA 7
+
+#define LED_CLOCK 7
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
 #define NUM_CHANNELS 2
 #define CHANNEL_1 0
@@ -15,15 +15,16 @@
 #define DELTA_DRIVE_MIN_PWR 230
 #define SERVO_STOP_CYCLES 50
 
-#define COLOR_DIM_GREEN CRGB(0, 32, 0)
-#define COLOR_EXTEND CRGB::Olive
-#define COLOR_RETRACT CRGB::Lime
-#define COLOR_CALIBRATE_HOLD CRGB::Aqua
-#define COLOR_CALIBRATE_EXECUTE CRGB::Yellow
-#define COLOR_MOTOR_BLOCKING CRGB::White
-#define COLOR_ERROR CRGB::Red
+#define COLOR_DIM_GREEN (0, 32, 0)
+#define COLOR_EXTEND (128,128,0)
+#define COLOR_RETRACT (0,255,0)
+#define COLOR_CALIBRATE_HOLD (0,255,255)
+#define COLOR_CALIBRATE_EXECUTE (255,255,0)
+#define COLOR_MOTOR_BLOCKING (255,255,255)
+#define COLOR_ERROR (255,0,0)
 
-CRGB leds[1];
+APA102<LED_DATA, LED_CLOCK> ledStrip;
+rgb_color leds[1];
 
 int targetPos = 600;
 int deadBand = 2;
@@ -46,6 +47,12 @@ unsigned long current_time_int0;
 unsigned long upflank_time[NUM_CHANNELS];
 unsigned long loop_timer;
 unsigned long diff;
+
+void out(byte r, byte g, byte b) {
+	leds[0].red = r;
+	leds[0].green = g;
+	leds[0].blue = b;
+}
 
 void eepromWriteInt(int adr, int wert) {
 	byte low = wert & 0xFF;
@@ -120,10 +127,11 @@ void setup() {
 
 	pinMode(13, INPUT_PULLUP);
 
-	FastLED.addLeds<WS2812, LED_DATA, GRB>(leds, 1);
-	leds[0] = CRGB(0,32,0);
-	FastLED.setBrightness(64);
-	FastLED.show();
+	leds[0].red = 0;
+	leds[0].green = 32;
+	leds[0].blue = 0;
+
+
 
 	Serial.begin(115200);
 	pinMode(A1, INPUT);
@@ -145,14 +153,15 @@ void setup() {
 }
 
 void loop() {
+	Serial.println(digitalRead(13));
 	if (!digitalRead(13)) {
 		calibrateCount++;
-		leds[0] = COLOR_CALIBRATE_HOLD;
+		out COLOR_CALIBRATE_HOLD;
 		Serial.println(calibrateCount);
 		if (calibrateCount== 2000) {
 			calibrateCount = 0;
-			leds[0] = COLOR_CALIBRATE_EXECUTE;
-			calibrate();
+			out COLOR_CALIBRATE_EXECUTE;
+			//calibrate();
 		}
 	} else {
 		calibrateCount = 0;
@@ -173,7 +182,7 @@ void loop() {
 		if (--blockingCount == 0)
 			blocking = false;
 		stop();
-		leds[0] = COLOR_MOTOR_BLOCKING;
+		out COLOR_MOTOR_BLOCKING;
 	} else {
 		if (curPos < (targetPos - deadBand)) {
 			if (lastDir) {
@@ -185,7 +194,7 @@ void loop() {
 			}
 			retract(delta);
 			if (calibrateCount < 5)
-				leds[0] = COLOR_RETRACT;
+				out COLOR_RETRACT;
 		} else if (curPos > (targetPos + deadBand)) {
 			if (!lastDir) {
 				blocking = true;
@@ -195,25 +204,20 @@ void loop() {
 			}
 			extend(delta);
 			if (calibrateCount < 5)
-				leds[0] = COLOR_EXTEND;
+				out COLOR_EXTEND;
 		} else {
 			stop();
-			leds[0] = COLOR_DIM_GREEN;
+			out COLOR_DIM_GREEN;
 		}
 	}
 
-	Serial.print(micros());
-	Serial.print(" ");
-	Serial.print(current_time_int0);
-	Serial.print(" ");
 	diff = micros() - current_time_int0;
-	Serial.println(diff);
 
 	if(diff > 250000) {
-		leds[0] = COLOR_ERROR;
-		FastLED.show();
-	}
+		out COLOR_ERROR;
 
+	}
+	ledStrip.write(leds, 1, 31);
 }
 
 ISR(PCINT0_vect) {
@@ -228,7 +232,6 @@ ISR(PCINT0_vect) {
 	} else if (last_flank[CHANNEL_1] == 1) {
 		last_flank[CHANNEL_1] = 0;
 		raw_inputs[CHANNEL_1] = current_time_int0 - upflank_time[CHANNEL_1];
-		FastLED.show();
 	}
 
 	//Channel 2

@@ -6,28 +6,29 @@
 #define RETRACT 11
 #define LED_DATA 7
 
-#define LED_CLOCK 7
+#define LED_CLOCK 4
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
 #define NUM_CHANNELS 2
 #define CHANNEL_1 0
 #define CHANNEL_2 1
 #define DELTA_DRIVE_START 50
-#define DELTA_DRIVE_MIN_PWR 230
-#define SERVO_STOP_CYCLES 50
+#define DELTA_DRIVE_MIN_PWR 180
+#define SERVO_STOP_CYCLES 60
+
+#define DEADBAND 5
 
 #define COLOR_DIM_GREEN (0, 32, 0)
 #define COLOR_EXTEND (128,128,0)
 #define COLOR_RETRACT (0,255,0)
-#define COLOR_CALIBRATE_HOLD (0,255,255)
-#define COLOR_CALIBRATE_EXECUTE (255,255,0)
-#define COLOR_MOTOR_BLOCKING (255,255,255)
+#define COLOR_CALIBRATE_HOLD (0,0,128)
+#define COLOR_CALIBRATE_EXECUTE (0,0,255)
+#define COLOR_MOTOR_BLOCKING (200,255,255)
 #define COLOR_ERROR (255,0,0)
 
 APA102<LED_DATA, LED_CLOCK> ledStrip;
 rgb_color leds[1];
 
 int targetPos = 600;
-int deadBand = 2;
 int total = 0;
 int curPos = 0;
 int calibrateCount = 0;
@@ -52,6 +53,7 @@ void out(byte r, byte g, byte b) {
 	leds[0].red = r;
 	leds[0].green = g;
 	leds[0].blue = b;
+	ledStrip.write(leds, 1, 4);
 }
 
 void eepromWriteInt(int adr, int wert) {
@@ -75,7 +77,7 @@ void calibrate() {
 		extend(26);
 		delay(200);
 		int after = analogRead(A1);
-		if (abs(prior - after) < deadBand * 2) {
+		if (abs(prior - after) < DEADBAND * 2) {
 			min = (prior + after) / 2;
 			calibrating = false;
 		}
@@ -86,7 +88,7 @@ void calibrate() {
 		retract(26);
 		delay(200);
 		int after = analogRead(A1);
-		if (abs(prior - after) < deadBand * 2) {
+		if (abs(prior - after) < DEADBAND * 2) {
 			max = (prior + after) / 2;
 			calibrating = false;
 		}
@@ -110,11 +112,11 @@ int deltaDriveCalc(int delta) {
 
 void retract(int delta) {
 	analogWrite(EXTEND, 255);
-	analogWrite(RETRACT, deltaDriveCalc(delta));
+	analogWrite(RETRACT, 0);
 }
 
 void extend(int delta) {
-	analogWrite(EXTEND, deltaDriveCalc(delta));
+	analogWrite(EXTEND, 0);
 	analogWrite(RETRACT, 255);
 }
 
@@ -126,12 +128,12 @@ void stop() {
 void setup() {
 
 	pinMode(13, INPUT_PULLUP);
+	pinMode(EXTEND, OUTPUT);
+	pinMode(RETRACT, OUTPUT);
 
 	leds[0].red = 0;
 	leds[0].green = 32;
 	leds[0].blue = 0;
-
-
 
 	Serial.begin(115200);
 	pinMode(A1, INPUT);
@@ -153,15 +155,13 @@ void setup() {
 }
 
 void loop() {
-	Serial.println(digitalRead(13));
 	if (!digitalRead(13)) {
 		calibrateCount++;
 		out COLOR_CALIBRATE_HOLD;
-		Serial.println(calibrateCount);
-		if (calibrateCount== 2000) {
+		if (calibrateCount== 1000) {
 			calibrateCount = 0;
 			out COLOR_CALIBRATE_EXECUTE;
-			//calibrate();
+			calibrate();
 		}
 	} else {
 		calibrateCount = 0;
@@ -184,27 +184,27 @@ void loop() {
 		stop();
 		out COLOR_MOTOR_BLOCKING;
 	} else {
-		if (curPos < (targetPos - deadBand)) {
+		if (curPos < (targetPos - DEADBAND)) {
 			if (lastDir) {
 				blocking = true;
 				blockingCount = SERVO_STOP_CYCLES;
 				lastDir = !lastDir;
 				return;
-
 			}
+
 			retract(delta);
-			if (calibrateCount < 5)
-				out COLOR_RETRACT;
-		} else if (curPos > (targetPos + deadBand)) {
+			if (calibrateCount < 5) out COLOR_RETRACT;
+
+		} else if (curPos > (targetPos + DEADBAND)) {
 			if (!lastDir) {
 				blocking = true;
 				blockingCount = SERVO_STOP_CYCLES;
 				lastDir = !lastDir;
 				return;
 			}
+
 			extend(delta);
-			if (calibrateCount < 5)
-				out COLOR_EXTEND;
+			if (calibrateCount < 5)	out COLOR_EXTEND;
 		} else {
 			stop();
 			out COLOR_DIM_GREEN;
@@ -215,9 +215,9 @@ void loop() {
 
 	if(diff > 250000) {
 		out COLOR_ERROR;
-
 	}
-	ledStrip.write(leds, 1, 31);
+
+
 }
 
 ISR(PCINT0_vect) {
@@ -232,16 +232,5 @@ ISR(PCINT0_vect) {
 	} else if (last_flank[CHANNEL_1] == 1) {
 		last_flank[CHANNEL_1] = 0;
 		raw_inputs[CHANNEL_1] = current_time_int0 - upflank_time[CHANNEL_1];
-	}
-
-	//Channel 2
-	if (PINB & B00000100) {
-		if (last_flank[CHANNEL_2] == 0) {
-			last_flank[CHANNEL_2] = 1;
-			upflank_time[CHANNEL_2] = current_time_int0;
-		}
-	} else if (last_flank[CHANNEL_2] == 1) {
-		last_flank[CHANNEL_2] = 0;
-		raw_inputs[CHANNEL_2] = current_time_int0 - upflank_time[CHANNEL_2];
 	}
 }

@@ -4,9 +4,10 @@
 
 #define EXTEND 9
 #define RETRACT 11
-#define LED_DATA 7
 
+#define LED_DATA 7
 #define LED_CLOCK 4
+
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
 #define NUM_CHANNELS 2
 #define CHANNEL_1 0

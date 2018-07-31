@@ -13,8 +13,10 @@ unsigned long loop_timer;
 int motorPower;
 byte mode;
 int throttleAvrg;
+bool reverse;
 
 int calibrateCount = 0;
+
 
 APA102<LED_DATA, LED_CLOCK> ledStrip;
 rgb_color leds[LED_COUNT];
@@ -28,10 +30,16 @@ void out(int idx, byte r, byte g, byte b) {
 void setup() {
   Serial.begin(115200);
 
-  pinMode(12, INPUT);
+  pinMode(PIN_CALIBRATE, INPUT);
+  pinMode(PIN_BRAKING_STAGE_ONE, OUTPUT);
+  pinMode(PIN_BRAKING_STAGE_TWO, OUTPUT);
+  pinMode(PIN_MOTOR_CONTROLLER_PWR, OUTPUT);
+  pinMode(PIN_REVERSE, OUTPUT);
 
   PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
   PCMSK0 |= 0x0F;
+
+  digitalWrite(PIN_MOTOR_CONTROLLER_PWR, HIGH);
 
   // each begin hangs until module is connected
   m1.begin(0x60, &sw1);
@@ -46,6 +54,7 @@ void setup() {
   out(2,0,0,0);
 
   throttleAvrg = 1500;
+  reverse = false;
 }
 
 void loop() {
@@ -62,17 +71,15 @@ void loop() {
 	}*/
 
 
-	if (Serial.available() > 1) {
+	/*if (Serial.available() > 1) {
 		int mappedTo = Serial.parseInt();
-		m1.setVoltage(mappedTo);
-		m2.setVoltage(mappedTo);
-		m3.setVoltage(mappedTo);
-		m4.setVoltage(mappedTo);
+
 		Serial.println(mappedTo);
-	}
+	}*/
 
 	throttleAvrg = throttleAvrg * 0.9 + raw_inputs[THROTTLE] * 0.1;
 
+	// Mode switch TODO: Later needed
 	if (raw_inputs[MODE] > 1750){
 		mode = 2;
 		out(0,0,127,0);
@@ -84,22 +91,49 @@ void loop() {
 		out(0,127,0,0);
 	}
 
-	if (throttleAvrg > 1520) {
+	// Throttle / Braking
+	if (throttleAvrg > 1520) { //Throttle
+		bool revOld = reverse;
 		int mappedThrottle = map(raw_inputs[THROTTLE],1520,2000,0,255);
-		if (raw_inputs[REVERSE] > 1250) {
+		if (raw_inputs[REVERSE] > 1250) { //Reverse?
 			out(1,0,mappedThrottle,0);
+			reverse = true;
 		} else {
 			out(1,0,0,mappedThrottle);
+			reverse = false;
 		}
-	} else if (throttleAvrg < 1400){
+
+		if(revOld != reverse) {
+			digitalWrite(PIN_REVERSE, reverse);
+		}
+
+		//Throttle calculation
+		int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
+		if (reverse) {
+			m1.setVoltage(thr);
+			m2.setVoltage(0);
+			m3.setVoltage(thr);
+			m4.setVoltage(0);
+		} else {
+			m1.setVoltage(thr);
+			m2.setVoltage(thr);
+			m3.setVoltage(thr);
+			m4.setVoltage(thr);
+		}
+	} else if (throttleAvrg < 1400){ //Braking
 		if (throttleAvrg > 1050) {
 			out(1,127,0,0);
+			digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+			digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
 		} else {
+			digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+			digitalWrite(PIN_BRAKING_STAGE_TWO, HIGH);
 			out(1,255,0,0);
 		}
 	} else {
 		out(1,127,127,0);
 	}
+
 
 	if (raw_inputs[STEERING] > 1540) {
 		out(2,0,127,0);

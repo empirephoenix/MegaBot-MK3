@@ -16,7 +16,7 @@
 #define DELTA_DRIVE_MIN_PWR 180
 #define SERVO_STOP_CYCLES 60
 
-#define DEADBAND 5
+#define DEADBAND 2
 
 #define COLOR_DIM_GREEN (0, 32, 0)
 #define COLOR_EXTEND (128,128,0)
@@ -101,6 +101,17 @@ void calibrate() {
 	eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 0, min);
 	eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 2, max);
 	targetPos = (max - min) / 2 + min;
+
+	//drive back to middle
+	calibrating = true;
+	while (calibrating) {
+		int delta = abs(targetPos - analogRead(A1));
+		if (delta < DEADBAND * 2) {
+			calibrating = false;
+			return;
+		}
+		extend(delta);
+	}
 }
 
 int deltaDriveCalc(int delta) {
@@ -112,13 +123,23 @@ int deltaDriveCalc(int delta) {
 }
 
 void retract(int delta) {
-	analogWrite(EXTEND, 255);
-	analogWrite(RETRACT, 0);
+	if (delta > 10) {
+		analogWrite(EXTEND, 255);
+		analogWrite(RETRACT, 0);
+	} else {
+		analogWrite(EXTEND, 255);
+		analogWrite(RETRACT, 128);
+	}
 }
 
 void extend(int delta) {
-	analogWrite(EXTEND, 0);
-	analogWrite(RETRACT, 255);
+	if (delta > 10) {
+		analogWrite(EXTEND, 0);
+		analogWrite(RETRACT, 255);
+	} else {
+		analogWrite(EXTEND, 128);
+		analogWrite(RETRACT, 255);
+	}
 }
 
 void stop() {
@@ -153,6 +174,7 @@ void setup() {
 	PCMSK0 |= B00000101;
 
 	curPos = analogRead(A1);
+	targetPos = min + (max - min) / 2;
 }
 
 void loop() {
@@ -168,14 +190,25 @@ void loop() {
 		calibrateCount = 0;
 	}
 
-	curPos = curPos * 0.95 + analogRead(A1) * 0.05;
-	if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
-		targetPos = targetPos * 0.8
-				+ map(raw_inputs[0], 1000, 2000, min, max) * 0.2;
+	int sample = analogRead(A1);
+	if (sample >= min && sample <= max) {
+		curPos = curPos * 0.99 + sample * 0.01;
+			if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
+				targetPos = targetPos * 0.95 + map(raw_inputs[0], 1000, 2000, min, max) * 0.05;
+	} else {
+		curPos = targetPos;
+	}
+
 
 	//Serial.println(raw_inputs[0]);
 
 	int delta = abs(targetPos - curPos);
+
+	Serial.print(curPos);
+	Serial.print(" ");
+	Serial.print(targetPos);
+	Serial.print(" ");
+	Serial.println(delta);
 
 	lastPos = curPos;
 

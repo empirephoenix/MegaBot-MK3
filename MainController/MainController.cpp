@@ -1,5 +1,7 @@
 #include "MainController.hpp"
+#include "keys.hpp"
 #include <APA102.h>
+#include <OneWire.h>
 #include <Arduino.h>
 
 byte last_flank[NUM_CHANNELS];
@@ -9,13 +11,10 @@ volatile int raw_inputs[NUM_CHANNELS];
 
 //not volatile only interrupt handler
 unsigned long current_time_int0, upflank_time[NUM_CHANNELS];
-unsigned long loop_timer;
-int motorPower;
-byte mode;
-int throttleAvrg;
-bool reverse;
-
-int calibrateCount = 0;
+unsigned long loop_timer, curTime;
+byte mode, buf[8], ibutton_blink_count;
+int motorPower, throttleAvrg, calibrateCount = 0;
+bool enabled, forward, ibutton_error, ibutton_led_status;
 
 
 APA102<LED_DATA, LED_CLOCK> ledStrip;
@@ -35,17 +34,18 @@ void setup() {
   pinMode(PIN_BRAKING_STAGE_TWO, OUTPUT);
   pinMode(PIN_MOTOR_CONTROLLER_PWR, OUTPUT);
   pinMode(PIN_REVERSE, OUTPUT);
+  pinMode(PIN_IBUTTON, OUTPUT);
+
+  analogWrite(PIN_IBUTTON_LED, 0);
 
   PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
   PCMSK0 |= 0x0F;
 
-  digitalWrite(PIN_MOTOR_CONTROLLER_PWR, HIGH);
-
   // each begin hangs until module is connected
-  m1.begin(0x60, &sw1);
-  m2.begin(0x60, &sw2);
-  m3.begin(0x60, &sw3);
-  m4.begin(0x60, &sw4);
+  vorne_links.begin(0x60, &sw1);
+  vorne_rechts.begin(0x60, &sw2);
+  hinten_rechts.begin(0x60, &sw4);
+  hinten_links.begin(0x60, &sw3);
 
   Serial.println("Done init");
   //calibrate();
@@ -54,10 +54,17 @@ void setup() {
   out(2,0,0,0);
 
   throttleAvrg = 1500;
-  reverse = false;
+  forward = true;
+  ibutton_error = false;
+  ibutton_led_status = true;
+  ibutton_blink_count = 0;
+
+  startup();
+  fail();
 }
 
 void loop() {
+
 /*	if (digitalRead(12)) {
 		calibrateCount++;
 		out (0, COLOR_CALIBRATE_HOLD);
@@ -77,80 +84,210 @@ void loop() {
 		Serial.println(mappedTo);
 	}*/
 
-	throttleAvrg = throttleAvrg * 0.9 + raw_inputs[THROTTLE] * 0.1;
+	if (enabled) {
+		throttleAvrg = throttleAvrg * 0.9 + raw_inputs[THROTTLE] * 0.1;
 
-	// Mode switch TODO: Later needed
-	if (raw_inputs[MODE] > 1750){
-		mode = 2;
-		out(0,0,127,0);
-	} else if (raw_inputs[MODE] > 1250) {
-		mode = 1;
-		out(0,0,0,127);
-	} else {
-		mode = 0;
-		out(0,127,0,0);
-	}
-
-	// Throttle / Braking
-	if (throttleAvrg > 1520) { //Throttle
-		bool revOld = reverse;
-		int mappedThrottle = map(raw_inputs[THROTTLE],1520,2000,0,255);
-		if (raw_inputs[REVERSE] > 1250) { //Reverse?
-			out(1,0,mappedThrottle,0);
-			reverse = true;
+		// Mode switch TODO: Later needed
+		if (raw_inputs[MODE] > 1750){
+			mode = 2;
+			out(0,0,127,0);
+		} else if (raw_inputs[MODE] > 1250) {
+			mode = 1;
+			out(0,0,0,127);
 		} else {
-			out(1,0,0,mappedThrottle);
-			reverse = false;
+			mode = 0;
+			out(0,127,0,0);
 		}
 
-		if(revOld != reverse) {
-			digitalWrite(PIN_REVERSE, reverse);
-		}
+		forward = raw_inputs[FORWARD] < 1250;
+		// Throttle / Braking
+		if (throttleAvrg > 1520) { //Throttle
 
-		//Throttle calculation
-		int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
-		if (reverse) {
-			m1.setVoltage(thr);
-			m2.setVoltage(0);
-			m3.setVoltage(thr);
-			m4.setVoltage(0);
+			//Throttle calculation
+			int mappedThrottle = map(raw_inputs[THROTTLE],1520,2000,0,255);
+			int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
+			if (forward) {
+				out(1,0,0,mappedThrottle);
+				vorne_links.setVoltage(thr);
+				vorne_rechts.setVoltage(thr);
+				hinten_rechts.setVoltage(thr);
+				hinten_links.setVoltage(thr);
+			} else { // Reverse
+				out(1,0,mappedThrottle,0);
+				vorne_links.setVoltage(thr);
+				vorne_rechts.setVoltage(thr);
+				hinten_rechts.setVoltage(0);
+				hinten_links.setVoltage(0);
+			}
+
+		} else if (throttleAvrg < 1400){ //Braking
+			vorne_links.setVoltage(0);
+			vorne_rechts.setVoltage(0);
+			hinten_rechts.setVoltage(0);
+			hinten_links.setVoltage(0);
+			if (throttleAvrg > 1050) {
+				out(1,127,0,0);
+				digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+				digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
+			} else {
+				digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+				digitalWrite(PIN_BRAKING_STAGE_TWO, HIGH);
+				out(1,255,0,0);
+			}
 		} else {
-			m1.setVoltage(thr);
-			m2.setVoltage(thr);
-			m3.setVoltage(thr);
-			m4.setVoltage(thr);
-		}
-	} else if (throttleAvrg < 1400){ //Braking
-		if (throttleAvrg > 1050) {
-			out(1,127,0,0);
-			digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+			out(1,127,127,0);
+			digitalWrite(PIN_BRAKING_STAGE_ONE, LOW);
 			digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
+		}
+
+		digitalWrite(PIN_REVERSE, forward);
+
+		if (raw_inputs[STEERING] > 1540) {
+			out(2,0,127,0);
+		} else if (raw_inputs[STEERING] < 1460){
+			out(2,127,0,0);
 		} else {
-			digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
-			digitalWrite(PIN_BRAKING_STAGE_TWO, HIGH);
+			out(2,127,127,127);
+		}
+
+		unsigned long tmp[4];
+		tmp[0] = upflank_time[0];
+		tmp[1] = upflank_time[1];
+		tmp[2] = upflank_time[2];
+		tmp[3] = upflank_time[3];
+
+		bool error = false;
+		curTime = micros();
+		if (curTime - tmp[0] > THRESHOLD) error = true;
+		if (curTime - tmp[1] > THRESHOLD) error = true;
+		if (curTime - tmp[2] > THRESHOLD) error = true;
+		if (curTime - tmp[3] > THRESHOLD) error = true;
+		if(error) {
+			out(0,255,0,0);
 			out(1,255,0,0);
+			out(2,255,0,0);
 		}
 	} else {
-		out(1,127,127,0);
+		if (!ibutton_error) {
+			if (!ibutton.search(buf)){
+				 ibutton.reset_search();
+			} else {
+				if (buf[0] == 0x01) { // check if its an iButton
+					if (checkValidKey()) {
+						enable();
+					} else {
+						ibutton_error = true;
+						ibutton_blink_count = 3;
+					}
+				} else {
+					ibutton_error = true;
+					ibutton_blink_count = 4;
+				}
+			}
+		}
 	}
 
-
-	if (raw_inputs[STEERING] > 1540) {
-		out(2,0,127,0);
-	} else if (raw_inputs[STEERING] < 1460){
-		out(2,127,0,0);
-	} else {
-		out(2,127,127,127);
+	if (ibutton_error) {
+		ibutton_error = false;
+		/*if (ibutton_led_status) {
+			ibutton_led_status = false;
+		}
+		digitalWrite(PIN_IBUTTON_LED, ibutton_led_status);*/
 	}
+
 	ledStrip.write(leds, LED_COUNT, 4);
 }
 
 void calibrate() {
-	//m1.setVoltageAndSave(0);
-	m2.setVoltageAndSave(0);
+	//vorne_links.setVoltageAndSave(0);
+	vorne_rechts.setVoltageAndSave(0);
 
 	// TODO: Handle updating of LEDs while calibrating (blocking function)
 	//ledStrip.write(leds, LED_COUNT, 4);
+}
+
+void validateDAC(byte idx) {
+}
+
+bool checkValidKey() {
+	/*for (int x = 0; x<8; x++){
+	    Serial.print(buf[x],HEX);
+	    Serial.print(" ");
+	}*/
+
+	for (byte x = 0; x < NUM_KEYS; x++) {
+		if (memcmp((void*)keys[x], (void*)buf, 8) == 0) {
+			//Serial.print("verified key ");
+			//Serial.println(x);
+			return true;
+		}
+	}
+	return false;
+	//Serial.println("");
+}
+
+
+void startup() {
+	bool error = false;
+	vorne_links.setVoltage(0);
+	vorne_rechts.setVoltage(0);
+	hinten_rechts.setVoltage(0);
+	hinten_links.setVoltage(0);
+	delay(5);
+	if (analogRead(0) > 10) error = true;
+	if (analogRead(1) > 10) error = true;
+	if (analogRead(2) > 10) error = true;
+	if (analogRead(3) > 10) error = true;
+
+	if (error) {
+		out(0,255,0,0);
+		out(1,0,0,0);
+		out(2,0,127,0);
+		ledStrip.write(leds, LED_COUNT, 4);
+		Serial.println(analogRead(0)/1024*5);
+		Serial.println(analogRead(1)/1024*5);
+		Serial.println(analogRead(2)/1024*5);
+		Serial.println(analogRead(3)/1024*5);
+		while(error);
+	}
+
+	vorne_links.setVoltage(1024);
+	vorne_rechts.setVoltage(1024);
+	hinten_rechts.setVoltage(1024);
+	hinten_links.setVoltage(1024);
+	delay(5);
+	if (analogRead(0) < 220) error = true;
+	if (analogRead(1) < 220) error = true;
+	if (analogRead(2) < 220) error = true;
+	if (analogRead(3) < 220) error = true;
+
+	if (error) {
+		out(0,255,0,0);
+		out(1,0,0,0);
+		out(2,0,0,127);
+		ledStrip.write(leds, LED_COUNT, 4);
+		Serial.println(analogRead(0)/1024*5);
+		Serial.println(analogRead(1)/1024*5);
+		Serial.println(analogRead(2)/1024*5);
+		Serial.println(analogRead(3)/1024*5);
+		while(error);
+	}
+}
+
+void enable() {
+	enabled = true;
+	digitalWrite(PIN_MOTOR_CONTROLLER_PWR, LOW);
+	digitalWrite(PIN_BRAKING_STAGE_ONE, LOW);
+	digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
+	digitalWrite(PIN_IBUTTON_LED, LOW);
+}
+
+void fail() {
+	enabled = false;
+	digitalWrite(PIN_MOTOR_CONTROLLER_PWR, HIGH);
+	digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+	digitalWrite(PIN_BRAKING_STAGE_TWO, HIGH);
+	digitalWrite(PIN_IBUTTON_LED, HIGH);
 }
 
 ISR(PCINT0_vect){
@@ -170,14 +307,14 @@ ISR(PCINT0_vect){
 
   //Channel 2
   if(PINB & B00000010){
-    if(last_flank[REVERSE] == 0){
-      last_flank[REVERSE] = 1;
-      upflank_time[REVERSE] = current_time_int0;
+    if(last_flank[FORWARD] == 0){
+      last_flank[FORWARD] = 1;
+      upflank_time[FORWARD] = current_time_int0;
     }
   }
-  else if(last_flank[REVERSE] == 1){
-    last_flank[REVERSE] = 0;
-    raw_inputs[REVERSE] = current_time_int0 - upflank_time[REVERSE];
+  else if(last_flank[FORWARD] == 1){
+    last_flank[FORWARD] = 0;
+    raw_inputs[FORWARD] = current_time_int0 - upflank_time[FORWARD];
   }
 
   //Channel 3

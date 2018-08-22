@@ -1,5 +1,6 @@
 #include "MCP4725.h"
 #include <SoftWire.h>
+#include <OneWire.h>
 
 /*
 1  PG5 OC0B      Digital pin 04  PWM
@@ -108,27 +109,20 @@
 #ifndef MAINCONTROLLER_HPP_
 #define MAINCONTROLLER_HPP_
 
-SoftWire sw1(2,3);
-SoftWire sw2(5,4);
-SoftWire sw3(7,6);
-SoftWire sw4(9,8);
-MCP4725 m1;
-MCP4725 m2;
-MCP4725 m3;
-MCP4725 m4;
-
 #define NUM_CHANNELS 4
 
 #define STEERING 3
 #define THROTTLE 2
-#define REVERSE 1
+#define FORWARD 1
 #define MODE 0
 
 #define PIN_CALIBRATE 12
-#define PIN_BRAKING_STAGE_ONE 0
-#define PIN_BRAKING_STAGE_TWO 0
-#define PIN_REVERSE 0
-#define PIN_MOTOR_CONTROLLER_PWR 0
+#define PIN_BRAKING_STAGE_ONE 15
+#define PIN_BRAKING_STAGE_TWO 16
+#define PIN_REVERSE 17
+#define PIN_MOTOR_CONTROLLER_PWR 14
+#define PIN_IBUTTON A5
+#define PIN_IBUTTON_LED A4
 
 #define COLOR_DIM_GREEN 0, 32, 0
 #define COLOR_CALIBRATE_HOLD 0,0,128
@@ -139,10 +133,28 @@ MCP4725 m4;
 #define LED_DATA 11
 #define LED_CLOCK 10
 
+#define LED_TOGGLE_TIME 10000
+#define THRESHOLD 250000
+
+SoftWire sw1(2,3);
+SoftWire sw2(5,4);
+SoftWire sw3(7,6);
+SoftWire sw4(9,8);
+MCP4725 vorne_links;
+MCP4725 vorne_rechts;
+MCP4725 hinten_links;
+MCP4725 hinten_rechts;
+
+OneWire ibutton(PIN_IBUTTON);
+
 void out(byte r, byte g, byte b);
 void setup();
 void loop();
 void calibrate();
-
+void fail();
+void enable();
+void startup();
+void validateDAC(byte idx);
+bool checkValidKey();
 
 #endif /* MAINCONTROLLER_HPP_ */

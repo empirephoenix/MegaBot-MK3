@@ -155,6 +155,6 @@ void fail();
 void enable();
 void startup();
 void validateDAC(byte idx);
-bool checkValidKey();
+void handleKeys();
 
 #endif /* MAINCONTROLLER_HPP_ */

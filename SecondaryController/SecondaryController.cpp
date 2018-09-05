@@ -191,59 +191,71 @@ void loop() {
 	}
 
 	int sample = analogRead(A1);
-	if (sample >= min && sample <= max) {
+	/*if (sample >= min && sample <= max) {
 		curPos = curPos * 0.99 + sample * 0.01;
 			if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
 				targetPos = targetPos * 0.95 + map(raw_inputs[0], 1000, 2000, min, max) * 0.05;
 	} else {
 		curPos = targetPos;
-	}
+	}*/
 
 
 	//Serial.println(raw_inputs[0]);
 
-	int delta = abs(targetPos - curPos);
+	//int delta = abs(targetPos - curPos);
+	int delta = 1500-raw_inputs[CHANNEL_1];
+	delta = delta /2;
 
-	Serial.print(curPos);
+	/*Serial.print(curPos);
 	Serial.print(" ");
 	Serial.print(targetPos);
-	Serial.print(" ");
+	Serial.print(" ");*/
 	Serial.println(delta);
+
+	if (delta > 5) {
+		extend(abs(delta));
+	}
+	else if (delta < -5) {
+		retract(abs(delta));
+	} else {
+		stop();
+	}
 
 	lastPos = curPos;
 
-	if (blocking) {
-		if (--blockingCount == 0)
-			blocking = false;
-		stop();
-		out COLOR_MOTOR_BLOCKING;
-	} else {
-		if (curPos < (targetPos - DEADBAND)) {
-			if (lastDir) {
-				blocking = true;
-				blockingCount = SERVO_STOP_CYCLES;
-				lastDir = !lastDir;
-				return;
-			}
 
-			retract(delta);
-			if (calibrateCount < 5) out COLOR_RETRACT;
-
-		} else if (curPos > (targetPos + DEADBAND)) {
-			if (!lastDir) {
-				blocking = true;
-				blockingCount = SERVO_STOP_CYCLES;
-				lastDir = !lastDir;
-				return;
-			}
-
-			extend(delta);
-			if (calibrateCount < 5)	out COLOR_EXTEND;
-		} else {
-			stop();
-			out COLOR_DIM_GREEN;
-		}
-	}
+//	if (blocking) {
+//		if (--blockingCount == 0)
+//			blocking = false;
+//		stop();
+//		out COLOR_MOTOR_BLOCKING;
+//	} else {
+//		if (curPos < (targetPos - DEADBAND)) {
+//			if (lastDir) {
+//				blocking = true;
+//				blockingCount = SERVO_STOP_CYCLES;
+//				lastDir = !lastDir;
+//				return;
+//			}
+//
+//			retract(delta);
+//			if (calibrateCount < 5) out COLOR_RETRACT;
+//
+//		} else if (curPos > (targetPos + DEADBAND)) {
+//			if (!lastDir) {
+//				blocking = true;
+//				blockingCount = SERVO_STOP_CYCLES;
+//				lastDir = !lastDir;
+//				return;
+//			}
+//
+//			extend(delta);
+//			if (calibrateCount < 5)	out COLOR_EXTEND;
+//		} else {
+//			stop();
+//			out COLOR_DIM_GREEN;
+//		}
+//	}
 
 	diff = micros() - current_time_int0;
 

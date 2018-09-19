@@ -13,7 +13,7 @@
 #define CHANNEL_1 0
 #define CHANNEL_2 1
 #define DELTA_DRIVE_START 50
-#define DELTA_DRIVE_MIN_PWR 180
+#define DELTA_DRIVE_MIN_PWR 200
 #define SERVO_STOP_CYCLES 60
 
 #define DEADBAND 2
@@ -31,7 +31,7 @@ rgb_color leds[1];
 
 int targetPos = 600;
 int total = 0;
-int curPos = 0;
+float curPos = 0;
 int calibrateCount = 0;
 
 int min = -1;
@@ -76,7 +76,7 @@ void calibrate() {
 	while (calibrating) {
 		int prior = analogRead(A1);
 		extend(26);
-		delay(200);
+		delay(500);
 		int after = analogRead(A1);
 		if (abs(prior - after) < DEADBAND * 2) {
 			min = (prior + after) / 2;
@@ -87,7 +87,7 @@ void calibrate() {
 	while (calibrating) {
 		int prior = analogRead(A1);
 		retract(26);
-		delay(200);
+		delay(500);
 		int after = analogRead(A1);
 		if (abs(prior - after) < DEADBAND * 2) {
 			max = (prior + after) / 2;
@@ -191,31 +191,32 @@ void loop() {
 	}
 
 	int sample = analogRead(A1);
-	/*if (sample >= min && sample <= max) {
-		curPos = curPos * 0.99 + sample * 0.01;
-			if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
+	if (sample >= min && sample <= max) {
+		curPos = curPos * 0.9 + sample * 0.1;
+			//if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
 				targetPos = targetPos * 0.95 + map(raw_inputs[0], 1000, 2000, min, max) * 0.05;
 	} else {
 		curPos = targetPos;
-	}*/
+	}
 
-
-	//Serial.println(raw_inputs[0]);
-
-	//int delta = abs(targetPos - curPos);
-	int delta = 1500-raw_inputs[CHANNEL_1];
-	delta = delta /2;
-
-	/*Serial.print(curPos);
-	Serial.print(" ");
+	Serial.print(min);
+		Serial.print(" ");
+		Serial.print(max);
+			Serial.print(" ");
 	Serial.print(targetPos);
-	Serial.print(" ");*/
-	Serial.println(delta);
+	Serial.print(" ");
+	Serial.println(curPos);
 
-	if (delta > 5) {
+
+	int delta = abs(targetPos - curPos);
+	//int delta = 1500-raw_inputs[CHANNEL_1];
+	//delta = delta /2;
+
+
+	if (delta > DEADBAND) {
 		extend(abs(delta));
 	}
-	else if (delta < -5) {
+	else if (delta < -DEADBAND) {
 		retract(abs(delta));
 	} else {
 		stop();
@@ -224,38 +225,38 @@ void loop() {
 	lastPos = curPos;
 
 
-//	if (blocking) {
-//		if (--blockingCount == 0)
-//			blocking = false;
-//		stop();
-//		out COLOR_MOTOR_BLOCKING;
-//	} else {
-//		if (curPos < (targetPos - DEADBAND)) {
-//			if (lastDir) {
-//				blocking = true;
-//				blockingCount = SERVO_STOP_CYCLES;
-//				lastDir = !lastDir;
-//				return;
-//			}
-//
-//			retract(delta);
-//			if (calibrateCount < 5) out COLOR_RETRACT;
-//
-//		} else if (curPos > (targetPos + DEADBAND)) {
-//			if (!lastDir) {
-//				blocking = true;
-//				blockingCount = SERVO_STOP_CYCLES;
-//				lastDir = !lastDir;
-//				return;
-//			}
-//
-//			extend(delta);
-//			if (calibrateCount < 5)	out COLOR_EXTEND;
-//		} else {
-//			stop();
-//			out COLOR_DIM_GREEN;
-//		}
-//	}
+	if (blocking) {
+		if (--blockingCount == 0)
+			blocking = false;
+		stop();
+		out COLOR_MOTOR_BLOCKING;
+	} else {
+		if (curPos < (targetPos - DEADBAND)) {
+			if (lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+			}
+
+			retract(delta);
+			if (calibrateCount < 5) out COLOR_RETRACT;
+
+		} else if (curPos > (targetPos + DEADBAND)) {
+			if (!lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+			}
+
+			extend(delta);
+			if (calibrateCount < 5)	out COLOR_EXTEND;
+		} else {
+			stop();
+			out COLOR_DIM_GREEN;
+		}
+	}
 
 	diff = micros() - current_time_int0;
 

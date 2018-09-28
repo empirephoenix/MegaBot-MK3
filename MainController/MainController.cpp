@@ -16,7 +16,7 @@ byte mode, buf[8];
 int motorPower, throttleAvrg, calibrateCount = 0;
 bool enabled, forward, fastModeAvailable;
 
-APA102<LED_DATA, LED_CLOCK> ledStrip;
+APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
 rgb_color leds[LED_COUNT];
 
 void out(int idx, byte r, byte g, byte b) {

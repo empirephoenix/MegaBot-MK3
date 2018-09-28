@@ -2,22 +2,20 @@
 #include <EEPROM.h>
 #include <APA102.h>
 
-#define EXTEND 9
-#define RETRACT 11
-
-#define LED_DATA 7
-#define LED_CLOCK 4
+#define PIN_EXTEND 9
+#define PIN_RETRACT 11
+#define PIN_SERVO_POSITION A1
+#define SERVO_STOP_CYCLES 60
+#define DEADBAND 2
+#define CALIBRATE_ANTI_BOUNCE_COUNT 1000
 
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
 #define NUM_CHANNELS 2
 #define CHANNEL_1 0
 #define CHANNEL_2 1
-#define DELTA_DRIVE_START 50
-#define DELTA_DRIVE_MIN_PWR 180
-#define SERVO_STOP_CYCLES 60
 
-#define DEADBAND 2
-
+#define PIN_LED_DATA 7
+#define PIN_LED_CLOCK 4
 #define COLOR_DIM_GREEN (0, 32, 0)
 #define COLOR_EXTEND (128,128,0)
 #define COLOR_RETRACT (0,255,0)
@@ -26,29 +24,30 @@
 #define COLOR_MOTOR_BLOCKING (200,255,255)
 #define COLOR_ERROR (255,0,0)
 
-APA102<LED_DATA, LED_CLOCK> ledStrip;
+APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
 rgb_color leds[1];
 
-int targetPos = 600;
-int total = 0;
-int curPos = 0;
+float targetPos = 0;
+float curPos = 0;
 int calibrateCount = 0;
 
+int delta;
 int min = -1;
 int max = -1;
 
 int lastPos = 0, lastDir = 0;
 int blockingCount = 0;
 bool blocking = false;
+bool error = false;
 
 byte last_flank[NUM_CHANNELS];
 volatile int receiver_input[NUM_CHANNELS];
 volatile int raw_inputs[NUM_CHANNELS];
+unsigned volatile long diff;
 //not volatile only interrupt handler
 unsigned long current_time_int0;
 unsigned long upflank_time[NUM_CHANNELS];
 unsigned long loop_timer;
-unsigned long diff;
 
 void out(byte r, byte g, byte b) {
 	leds[0].red = r;
@@ -74,10 +73,10 @@ int eepromReadInt(int adr) {
 void calibrate() {
 	boolean calibrating = true;
 	while (calibrating) {
-		int prior = analogRead(A1);
-		extend(26);
+		int prior = analogRead(PIN_SERVO_POSITION);
+		move(-26);
 		delay(200);
-		int after = analogRead(A1);
+		int after = analogRead(PIN_SERVO_POSITION);
 		if (abs(prior - after) < DEADBAND * 2) {
 			min = (prior + after) / 2;
 			calibrating = false;
@@ -85,10 +84,10 @@ void calibrate() {
 	}
 	calibrating = true;
 	while (calibrating) {
-		int prior = analogRead(A1);
-		retract(26);
+		int prior = analogRead(PIN_SERVO_POSITION);
+		move(26);
 		delay(200);
-		int after = analogRead(A1);
+		int after = analogRead(PIN_SERVO_POSITION);
 		if (abs(prior - after) < DEADBAND * 2) {
 			max = (prior + after) / 2;
 			calibrating = false;
@@ -100,65 +99,32 @@ void calibrate() {
 	Serial.println(max);
 	eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 0, min);
 	eepromWriteInt(EEPROM_MIN_MAX_ADDR_OFFSET + 2, max);
-	targetPos = (max - min) / 2 + min;
-
-	//drive back to middle
-	calibrating = true;
-	while (calibrating) {
-		int delta = abs(targetPos - analogRead(A1));
-		if (delta < DEADBAND * 2) {
-			calibrating = false;
-			return;
-		}
-		extend(delta);
-	}
+	middleSteering();
 }
 
-int deltaDriveCalc(int delta) {
-	if (delta > DELTA_DRIVE_START) {
-		return 0;
-	}
-	int pwr = map(delta, 0, DELTA_DRIVE_START, DELTA_DRIVE_MIN_PWR, 0);
-	return pwr;
-}
-
-void retract(int delta) {
-	if (delta > 10) {
-		analogWrite(EXTEND, 255);
-		analogWrite(RETRACT, 0);
-	} else {
-		analogWrite(EXTEND, 255);
-		analogWrite(RETRACT, 128);
-	}
-}
-
-void extend(int delta) {
-	if (delta > 10) {
-		analogWrite(EXTEND, 0);
-		analogWrite(RETRACT, 255);
-	} else {
-		analogWrite(EXTEND, 128);
-		analogWrite(RETRACT, 255);
-	}
+void move(int delta) {
+	int speed = abs(delta) > 10 ? 0 : 128;
+	analogWrite(PIN_EXTEND, delta > 0 ? 255 : speed);
+	analogWrite(PIN_RETRACT, delta < 0 ? 255 : speed);
 }
 
 void stop() {
-	analogWrite(EXTEND, 255);
-	analogWrite(RETRACT, 255);
+	analogWrite(PIN_EXTEND, 255);
+	analogWrite(PIN_RETRACT, 255);
 }
 
 void setup() {
 
 	pinMode(13, INPUT_PULLUP);
-	pinMode(EXTEND, OUTPUT);
-	pinMode(RETRACT, OUTPUT);
+	pinMode(PIN_EXTEND, OUTPUT);
+	pinMode(PIN_RETRACT, OUTPUT);
 
 	leds[0].red = 0;
 	leds[0].green = 32;
 	leds[0].blue = 0;
-
+	void extend(int delta);
 	Serial.begin(115200);
-	pinMode(A1, INPUT);
+	pinMode(PIN_SERVO_POSITION, INPUT);
 
 	min = eepromReadInt(0);
 	max = eepromReadInt(2);
@@ -173,97 +139,118 @@ void setup() {
 	PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
 	PCMSK0 |= B00000101;
 
-	curPos = analogRead(A1);
+	curPos = analogRead(PIN_SERVO_POSITION);
+	middleSteering();
+	Serial.println(targetPos);
+}
+
+void middleSteering() {
 	targetPos = min + (max - min) / 2;
 }
 
-void loop() {
+void processCalibrate() {
 	if (!digitalRead(13)) {
 		calibrateCount++;
 		out COLOR_CALIBRATE_HOLD;
-		if (calibrateCount== 1000) {
-			calibrateCount = 0;
-			out COLOR_CALIBRATE_EXECUTE;
+		if (calibrateCount == CALIBRATE_ANTI_BOUNCE_COUNT) {
+			updateLED();
 			calibrate();
+			calibrateCount = 0;
 		}
 	} else {
 		calibrateCount = 0;
 	}
+}
 
-	int sample = analogRead(A1);
-	/*if (sample >= min && sample <= max) {
-		curPos = curPos * 0.99 + sample * 0.01;
-			if (raw_inputs[0] > 900 && raw_inputs[0] < 2100)
-				targetPos = targetPos * 0.95 + map(raw_inputs[0], 1000, 2000, min, max) * 0.05;
+void updateLED() {
+	if (error) {
+		out COLOR_ERROR;
+		return;
+	}
+
+	if (calibrateCount == CALIBRATE_ANTI_BOUNCE_COUNT) {
+		out COLOR_CALIBRATE_EXECUTE;
+		return;
+	}
+
+	if (calibrateCount > 0) {
+		out COLOR_CALIBRATE_HOLD;
+		return;
+	}
+
+	if(blocking) {
+		out COLOR_MOTOR_BLOCKING;
+		return;
+	}
+
+	if (delta > DEADBAND) {
+		out COLOR_EXTEND;
+		return;
+	}
+
+	if (delta < -DEADBAND) {
+		out COLOR_RETRACT;
+		return;
+	}
+
+	out COLOR_DIM_GREEN;
+
+}
+
+void loop() {
+	diff = micros() - current_time_int0;
+	int sample = analogRead(PIN_SERVO_POSITION);
+	if (sample >= min && sample <= max) {
+		curPos = curPos * 0.9 + sample * 0.1;
+		targetPos = targetPos * 0.9 + map(raw_inputs[0], 1000, 2000, min, max) * 0.1;
 	} else {
 		curPos = targetPos;
-	}*/
+	}
 
-
-	//Serial.println(raw_inputs[0]);
-
-	//int delta = abs(targetPos - curPos);
-	int delta = 1500-raw_inputs[CHANNEL_1];
-	delta = delta /2;
-
-	/*Serial.print(curPos);
+	error = (diff > 250000 || raw_inputs[0] < 800);
+	Serial.print(raw_inputs[0]);
 	Serial.print(" ");
-	Serial.print(targetPos);
-	Serial.print(" ");*/
-	Serial.println(delta);
-
-	if (delta > 5) {
-		extend(abs(delta));
+	Serial.println(diff);
+	if (error) {
+		middleSteering();
+		Serial.println("error");
 	}
-	else if (delta < -5) {
-		retract(abs(delta));
-	} else {
+
+	antiFlickeringAndMovement();
+	processCalibrate();
+	updateLED();
+}
+
+void antiFlickeringAndMovement() {
+	delta = targetPos - curPos;
+	if (blocking) {
+		if (--blockingCount == 0)
+			blocking = false;
 		stop();
-	}
+	} else {
+		if (delta < - DEADBAND) {
+			if (lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+			}
 
+			move(delta);
+		} else if (delta > DEADBAND) {
+			if (!lastDir) {
+				blocking = true;
+				blockingCount = SERVO_STOP_CYCLES;
+				lastDir = !lastDir;
+				return;
+			}
+
+			move(delta);
+		} else {
+			stop();
+		}
+	}
 	lastPos = curPos;
-
-
-//	if (blocking) {
-//		if (--blockingCount == 0)
-//			blocking = false;
-//		stop();
-//		out COLOR_MOTOR_BLOCKING;
-//	} else {
-//		if (curPos < (targetPos - DEADBAND)) {
-//			if (lastDir) {
-//				blocking = true;
-//				blockingCount = SERVO_STOP_CYCLES;
-//				lastDir = !lastDir;
-//				return;
-//			}
-//
-//			retract(delta);
-//			if (calibrateCount < 5) out COLOR_RETRACT;
-//
-//		} else if (curPos > (targetPos + DEADBAND)) {
-//			if (!lastDir) {
-//				blocking = true;
-//				blockingCount = SERVO_STOP_CYCLES;
-//				lastDir = !lastDir;
-//				return;
-//			}
-//
-//			extend(delta);
-//			if (calibrateCount < 5)	out COLOR_EXTEND;
-//		} else {
-//			stop();
-//			out COLOR_DIM_GREEN;
-//		}
-//	}
-
-	diff = micros() - current_time_int0;
-
-	if(diff > 250000) {
-		out COLOR_ERROR;
-	}
-
-
 }
 
 ISR(PCINT0_vect) {

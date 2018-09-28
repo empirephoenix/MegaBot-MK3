@@ -3,12 +3,15 @@
 #ifndef SECONDARYCONTROLLER_H_
 #define SECONDARYCONTROLLER_H_
 
+void antiFlickeringAndMovement();
+void processCalibrate();
 void calibrate();
 void stop();
-void retract(int delta);
-void extend(int delta);
+void move(int delta);
 void limit_receiver_input(byte n);
 void eepromWriteInt(int adr, int wert);
+void middleSteering();
+void updateLED();
 
 int eepromReadInt(int adr);
 int deltaDriveCalc(int delta);

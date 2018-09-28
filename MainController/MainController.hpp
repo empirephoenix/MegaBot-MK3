@@ -130,8 +130,8 @@
 #define COLOR_ERROR 255,0,0
 
 #define LED_COUNT 3
-#define LED_DATA 11
-#define LED_CLOCK 10
+#define PIN_LED_DATA 11
+#define PIN_LED_CLOCK 10
 
 #define LED_TOGGLE_TIME 10000
 #define THRESHOLD 250000

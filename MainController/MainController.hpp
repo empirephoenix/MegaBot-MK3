@@ -150,11 +150,9 @@ OneWire ibutton(PIN_IBUTTON);
 void out(byte r, byte g, byte b);
 void setup();
 void loop();
-void calibrate();
 void fail();
 void enable();
 void startup();
-void validateDAC(byte idx);
 void handleKeys();
 
 #endif /* MAINCONTROLLER_HPP_ */

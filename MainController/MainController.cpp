@@ -59,101 +59,92 @@ void setup() {
 	fail();
 }
 
+void stopMotors() {
+	//Braking
+	vorne_links.setVoltage(0);
+	vorne_rechts.setVoltage(0);
+	hinten_rechts.setVoltage(0);
+	hinten_links.setVoltage(0);
+}
+
+void handleNormalThrust() {
+	out(1, 0, 0, map(raw_inputs[THROTTLE], 1520, 2000, 0, 255));
+
+	int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
+	vorne_links.setVoltage(thr);
+	vorne_rechts.setVoltage(thr);
+	hinten_rechts.setVoltage(forward ? thr : 0);
+	hinten_links.setVoltage(forward ? thr : 0);
+}
+
+void handleBraking() {
+	//Braking
+	stopMotors();
+	bool maxBrake = throttleAvrg < 1050;
+	out(1, maxBrake ? 255 : 127, 0, 0);
+	digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
+	digitalWrite(PIN_BRAKING_STAGE_TWO, maxBrake ? HIGH : LOW);
+}
+
+void handlePause() {
+	stopMotors();
+	out(1, 127, 127, 0);
+	digitalWrite(PIN_BRAKING_STAGE_ONE, LOW);
+	digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
+	handleKeys();
+	forward = raw_inputs[FORWARD] < 1250;
+}
+
+void updateTurningStatusLED() {
+	if (raw_inputs[STEERING] > 1540) {
+		out(2, 0, 127, 0);
+	} else if (raw_inputs[STEERING] < 1460) {
+		out(2, 127, 0, 0);
+	} else {
+		out(2, 127, 127, 127);
+	}
+}
+
+void handleModeInput() {
+	// Mode switch TODO: Later needed
+	if (fastModeAvailable) {
+		if (raw_inputs[MODE] > 1750) {
+			mode = 2;
+			out(0, 0, 127, 0);
+		} else if (raw_inputs[MODE] > 1250) {
+			mode = 1;
+			out(0, 0, 0, 127);
+		} else {
+			mode = 0;
+			out(0, 127, 0, 0);
+		}
+	} else {
+		mode = 2;
+		out(0, 0, 127, 0);
+	}
+}
+
 void loop() {
-
-	/*	if (digitalRead(12)) {
-	 calibrateCount++;
-	 out (0, COLOR_CALIBRATE_HOLD);
-	 if (calibrateCount== 1000) {
-	 calibrateCount = 0;
-	 out (0, COLOR_CALIBRATE_EXECUTE);
-	 calibrate();
-	 }
-	 } else {
-	 calibrateCount = 0;
-	 }*/
-
-	/*if (Serial.available() > 1) {
-	 int mappedTo = Serial.parseInt();
-
-	 Serial.println(mappedTo);
-	 }*/
+	//todo read from hall sensors
+	int currentSpeed = 0;
 
 	if (enabled) {
 		throttleAvrg = throttleAvrg * 0.9 + raw_inputs[THROTTLE] * 0.1;
 
-		// Mode switch TODO: Later needed
-		if (fastModeAvailable){
-			if (raw_inputs[MODE] > 1750) {
-				mode = 2;
-				out(0, 0, 127, 0);
-			} else if (raw_inputs[MODE] > 1250) {
-				mode = 1;
-				out(0, 0, 0, 127);
-			} else {
-				mode = 0;
-				out(0, 127, 0, 0);
-			}
-		} else {
-			mode = 2;
-			out(0, 0, 127, 0);
-		}
+		handleModeInput();
 
-		forward = raw_inputs[FORWARD] < 1250;
 		// Throttle / Braking
 		if (throttleAvrg > 1520) { //Throttle
-
-			//Throttle calculation
-			int mappedThrottle = map(raw_inputs[THROTTLE], 1520, 2000, 0, 255);
-			int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
-			if (forward) {
-				out(1, 0, 0, mappedThrottle);
-				vorne_links.setVoltage(thr);
-				vorne_rechts.setVoltage(thr);
-				hinten_rechts.setVoltage(thr);
-				hinten_links.setVoltage(thr);
-			} else { // Reverse
-				out(1, 0, mappedThrottle, 0);
-				vorne_links.setVoltage(thr);
-				vorne_rechts.setVoltage(thr);
-				hinten_rechts.setVoltage(0);
-				hinten_links.setVoltage(0);
-			}
-
+			handleNormalThrust();
 		} else if (throttleAvrg < 1400) { //Braking
-			vorne_links.setVoltage(0);
-			vorne_rechts.setVoltage(0);
-			hinten_rechts.setVoltage(0);
-			hinten_links.setVoltage(0);
-			if (throttleAvrg > 1050) {
-				out(1, 127, 0, 0);
-				digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
-				digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
-			} else {
-				digitalWrite(PIN_BRAKING_STAGE_ONE, HIGH);
-				digitalWrite(PIN_BRAKING_STAGE_TWO, HIGH);
-				out(1, 255, 0, 0);
-			}
-		} else {
-			vorne_links.setVoltage(0);
-			vorne_rechts.setVoltage(0);
-			hinten_rechts.setVoltage(0);
-			hinten_links.setVoltage(0);
-			out(1, 127, 127, 0);
-			digitalWrite(PIN_BRAKING_STAGE_ONE, LOW);
-			digitalWrite(PIN_BRAKING_STAGE_TWO, LOW);
-			handleKeys();
+			handleBraking();
+		} else if (currentSpeed < 1) {
+			handlePause();
 		}
 
 		digitalWrite(PIN_REVERSE, forward);
 
-		if (raw_inputs[STEERING] > 1540) {
-			out(2, 0, 127, 0);
-		} else if (raw_inputs[STEERING] < 1460) {
-			out(2, 127, 0, 0);
-		} else {
-			out(2, 127, 127, 127);
-		}
+		updateTurningStatusLED();
 
 		unsigned long tmp[4];
 		tmp[0] = upflank_time[0];
@@ -176,26 +167,14 @@ void loop() {
 			out(1, 255, 0, 0);
 			out(2, 255, 0, 0);
 		}
-	} else {
+	} else if (currentSpeed < 1) {
 		handleKeys();
 	}
 
 	ledStrip.write(leds, LED_COUNT, 4);
 }
 
-void calibrate() {
-	//vorne_links.setVoltageAndSave(0);
-	vorne_rechts.setVoltageAndSave(0);
-
-	// TODO: Handle updating of LEDs while calibrating (blocking function)
-	//ledStrip.write(leds, LED_COUNT, 4);
-}
-
-void validateDAC(byte idx) {
-}
-
 void handleKeys() {
-
 	if (!ibutton.search(buf)) {
 		ibutton.reset_search();
 		return;
@@ -226,11 +205,6 @@ void handleKeys() {
 	}
 
 	fail();
-
-	/*if (ibutton_led_status) {
-	 ibutton_led_status = false;
-	 }
-	 digitalWrite(PIN_IBUTTON_LED, ibutton_led_status);*/
 }
 
 bool checkValidKey() {
@@ -239,29 +213,33 @@ bool checkValidKey() {
 		Serial.print(" ");
 	}
 	Serial.println("");
-//delay(1000);
 
 	for (byte x = 0; x < NUM_KEYS; x++) {
 		if (memcmp((void*) keys[x], (void*) buf, 8) == 0) {
-			//Serial.print("verified key ");
-			//Serial.println(x);
-			if (keys[x][9]) {
-
-			}
 			return true;
 		}
 	}
 	return false;
-//Serial.println("");
+}
+
+void hangWithDACError(bool error) {
+	out(0, 255, 0, 0);
+	out(1, 0, 0, 0);
+	ledStrip.write(leds, LED_COUNT, 4);
+	Serial.println(analogRead(0) / 1024 * 5);
+	Serial.println(analogRead(1) / 1024 * 5);
+	Serial.println(analogRead(2) / 1024 * 5);
+	Serial.println(analogRead(3) / 1024 * 5);
+	while (error)
+		;
+
 }
 
 void startup() {
 	bool error = false;
-	vorne_links.setVoltage(0);
-	vorne_rechts.setVoltage(0);
-	hinten_rechts.setVoltage(0);
-	hinten_links.setVoltage(0);
+	stopMotors();
 	delay(5);
+	Serial.println("Initial to 0V DAC test");
 	if (analogRead(0) > 10)
 		error = true;
 	if (analogRead(1) > 10)
@@ -272,17 +250,11 @@ void startup() {
 		error = true;
 
 	if (error) {
-		out(0, 255, 0, 0);
-		out(1, 0, 0, 0);
+		Serial.println("Abort startup, initial validation of DAC failed");
 		out(2, 0, 127, 0);
-		ledStrip.write(leds, LED_COUNT, 4);
-		Serial.println(analogRead(0) / 1024 * 5);
-		Serial.println(analogRead(1) / 1024 * 5);
-		Serial.println(analogRead(2) / 1024 * 5);
-		Serial.println(analogRead(3) / 1024 * 5);
-		while (error)
-			;
+		hangWithDACError(error);
 	}
+	Serial.println("Low Test passed, starting 5V test");
 
 	vorne_links.setVoltage(1024);
 	vorne_rechts.setVoltage(1024);
@@ -299,17 +271,10 @@ void startup() {
 		error = true;
 
 	if (error) {
-		out(0, 255, 0, 0);
-		out(1, 0, 0, 0);
 		out(2, 0, 0, 127);
-		ledStrip.write(leds, LED_COUNT, 4);
-		Serial.println(analogRead(0) / 1024 * 5);
-		Serial.println(analogRead(1) / 1024 * 5);
-		Serial.println(analogRead(2) / 1024 * 5);
-		Serial.println(analogRead(3) / 1024 * 5);
-		while (error)
-			;
+		hangWithDACError(error);
 	}
+	Serial.println("Startup tests passed");
 }
 
 void enable() {

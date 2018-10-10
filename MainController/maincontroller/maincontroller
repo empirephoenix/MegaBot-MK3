@@ -1,0 +1,42 @@
+Source,C:\workspace\MegaBot-MK3\MainController\maincontroller\maincontroller.sch
+Kicad Rev,Eeschema (5.0.0)
+Generated Date,10/10/2018 23:40:58
+
+Title,Not Set
+Company,Not Set
+Revision,Not Set
+Date Issue,Not Set
+
+Reference,Value,Library,Library Ref
+SW1,SW_Push,Switch,SW_Push
+J2,Receiver,Connector_Generic,Conn_01x06
+XA1,Arduino_Mega2560_Shield,arduino,Arduino_Mega2560_Shield
+J5,OneWire,Connector_Generic,Conn_01x04
+J4,Analog_Motor,Connector,Conn_01x04_Female
+J1,LED,Connector_Generic,Conn_01x04
+Vorne_links1,MCP4725,MCP4725,MCP4725
+Vorne_rechts1,MCP4725,MCP4725,MCP4725
+Hinten_links1,MCP4725,MCP4725,MCP4725
+Hinten_rechts1,MCP4725,MCP4725,MCP4725
+R1,R380,Device,R
+R2,R380,Device,R
+R3,R380,Device,R
+R4,R380,Device,R
+R5,R215,Device,R
+R6,R4K7,Device,R
+J3,5VIN,Connector,Conn_01x03_Male
+J6,Hall_In,Connector_Generic,Conn_01x04
+R11,R2k7,Device,R
+R7,R30k,Device,R
+R15,R4k7,Device,R
+R16,R4k7,Device,R
+R17,R4k7,Device,R
+R18,R4k7,Device,R
+R8,R30k,Device,R
+R9,R30k,Device,R
+R10,R30k,Device,R
+R12,R2k7,Device,R
+R13,R2k7,Device,R
+R14,R2k7,Device,R
+J7,Conn_01x02,Connector_Generic,Conn_01x02
+J8,Conn_01x05_Female,Connector,Conn_01x05_Female

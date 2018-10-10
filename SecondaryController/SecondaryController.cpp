@@ -43,7 +43,7 @@ bool error = false;
 byte last_flank[NUM_CHANNELS];
 volatile int receiver_input[NUM_CHANNELS];
 volatile int raw_inputs[NUM_CHANNELS];
-unsigned volatile long diff;
+volatile long diff;
 //not volatile only interrupt handler
 unsigned long current_time_int0;
 unsigned long upflank_time[NUM_CHANNELS];
@@ -200,17 +200,19 @@ void updateLED() {
 void loop() {
 	diff = micros() - current_time_int0;
 	int sample = analogRead(PIN_SERVO_POSITION);
+	long int potiMappedRawInput = 0;
 	if (sample >= min && sample <= max) {
 		curPos = curPos * 0.9 + sample * 0.1;
-		targetPos = targetPos * 0.9 + map(raw_inputs[0], 1000, 2000, min, max) * 0.1;
+		potiMappedRawInput = map(raw_inputs[0], 1000, 2000, min, max);
+		targetPos = targetPos * 0.9 + potiMappedRawInput * 0.1;
 	} else {
 		curPos = targetPos;
 	}
 
 	error = (diff > 250000 || raw_inputs[0] < 800);
-	Serial.print(raw_inputs[0]);
+	Serial.print(curPos);
 	Serial.print(" ");
-	Serial.println(diff);
+	Serial.println(targetPos);
 	if (error) {
 		middleSteering();
 		Serial.println("error");

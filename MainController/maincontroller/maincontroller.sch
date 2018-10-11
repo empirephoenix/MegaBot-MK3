@@ -15,10 +15,10 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L Switch:SW_Push SW1
+L Switch:SW_Push Reset1
 U 1 1 5BB7D413
 P 5600 5100
-F 0 "SW1" H 5600 5385 50  0000 C CNN
+F 0 "Reset1" H 5600 5385 50  0000 C CNN
 F 1 "SW_Push" H 5600 5294 50  0000 C CNN
 F 2 "Button_Switch_THT:SW_DIP_SPSTx01_Piano_10.8x4.1mm_W7.62mm_P2.54mm" H 5600 5300 50  0001 C CNN
 F 3 "" H 5600 5300 50  0001 C CNN
@@ -59,12 +59,12 @@ F 3 "~" H 2900 6250 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Connector:Conn_01x04_Female J4
+L Connector:Conn_01x05_Female J4
 U 1 1 5BB7E5BD
 P 2050 3350
 F 0 "J4" H 2077 3326 50  0000 L CNN
 F 1 "Analog_Motor" H 2077 3235 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 2050 3350 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical" H 2050 3350 50  0001 C CNN
 F 3 "~" H 2050 3350 50  0001 C CNN
 	1    2050 3350
 	-1   0    0    1   
@@ -399,21 +399,6 @@ Wire Wire Line
 Connection ~ 3800 5900
 Wire Wire Line
 	3800 5900 3800 3750
-$Comp
-L Connector:Conn_01x03_Male J3
-U 1 1 5BBE531C
-P 2900 6750
-F 0 "J3" H 3006 7028 50  0000 C CNN
-F 1 "5VIN" H 3006 6937 50  0000 C CNN
-F 2 "Connector_JST:JST_EH_B03B-EH-A_1x03_P2.50mm_Vertical" H 2900 6750 50  0001 C CNN
-F 3 "~" H 2900 6750 50  0001 C CNN
-	1    2900 6750
-	1    0    0    -1  
-$EndComp
-Connection ~ 3200 6150
-Wire Wire Line
-	3300 5800 3300 6750
-Connection ~ 3300 5800
 Wire Wire Line
 	8350 6300 8800 6300
 Wire Wire Line
@@ -491,7 +476,7 @@ U 1 1 5BD2D1DF
 P 3950 4100
 F 0 "J6" H 3870 3675 50  0000 C CNN
 F 1 "Hall_In" H 3870 3766 50  0000 C CNN
-F 2 "Connector_JST:JST_EH_B04B-EH-A_1x04_P2.50mm_Vertical" H 3950 4100 50  0001 C CNN
+F 2 "Connector_JST:JST_EH_B04B-EH-A_1x05_P2.50mm_Vertical" H 3950 4100 50  0001 C CNN
 F 3 "~" H 3950 4100 50  0001 C CNN
 	1    3950 4100
 	-1   0    0    1   
@@ -677,16 +662,6 @@ Connection ~ 4550 3900
 Wire Wire Line
 	4550 3900 5400 3900
 Wire Wire Line
-	3200 6850 3100 6850
-Wire Wire Line
-	3200 6750 3200 6850
-Wire Wire Line
-	3200 6700 3200 6750
-Wire Wire Line
-	3100 6750 3300 6750
-Wire Wire Line
-	3200 6150 3200 6750
-Wire Wire Line
 	5700 4200 5750 4200
 Wire Wire Line
 	5700 4100 5800 4100
@@ -715,10 +690,10 @@ Wire Wire Line
 Wire Wire Line
 	8750 5800 8500 5800
 $Comp
-L Connector_Generic:Conn_01x02 J7
+L Connector_Generic:Conn_01x02 Bus1
 U 1 1 5BC4BCB9
 P 5450 2850
-F 0 "J7" H 5370 2525 50  0000 C CNN
+F 0 "Bus1" H 5370 2525 50  0000 C CNN
 F 1 "Conn_01x02" H 5370 2616 50  0000 C CNN
 F 2 "Connector_JST:JST_EH_B02B-EH-A_1x02_P2.50mm_Vertical" H 5450 2850 50  0001 C CNN
 F 3 "~" H 5450 2850 50  0001 C CNN
@@ -736,34 +711,28 @@ Wire Wire Line
 Wire Wire Line
 	5900 2850 5900 2900
 $Comp
-L Connector:Conn_01x05_Female J8
+L Connector:Conn_01x03_Female relays1
 U 1 1 5BBFA89A
 P 9700 3400
-F 0 "J8" H 9727 3426 50  0000 L CNN
+F 0 "relays1" H 9727 3426 50  0000 L CNN
 F 1 "Conn_01x05_Female" H 9727 3335 50  0000 L CNN
-F 2 "Connector_JST:JST_EH_B05B-EH-A_1x05_P2.50mm_Vertical" H 9700 3400 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 9700 3400 50  0001 C CNN
 F 3 "~" H 9700 3400 50  0001 C CNN
 	1    9700 3400
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	9500 3200 9500 3300
 Wire Wire Line
 	9500 3200 9100 3200
 Wire Wire Line
 	9100 3200 9100 2800
 Wire Wire Line
 	9100 2800 8500 2800
-Connection ~ 9500 3200
 Wire Wire Line
 	8500 2900 9000 2900
 Wire Wire Line
 	9000 3400 9500 3400
 Wire Wire Line
 	9000 2900 9000 3400
-Wire Wire Line
-	9500 3500 9500 3400
-Connection ~ 9500 3400
 Wire Wire Line
 	9500 3600 9200 3600
 Connection ~ 9200 3600
@@ -824,4 +793,16 @@ Wire Wire Line
 Connection ~ 8900 6200
 Wire Wire Line
 	8900 6200 8900 6350
+Wire Wire Line
+	5900 4100 5950 4100
+Wire Wire Line
+	5950 4100 5950 4750
+Wire Wire Line
+	5950 4750 2250 4750
+Wire Wire Line
+	2250 4750 2250 3550
+Wire Wire Line
+	9500 3500 9500 3600
+Wire Wire Line
+	9500 3300 9500 3200
 $EndSCHEMATC

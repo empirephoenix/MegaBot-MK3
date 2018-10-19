@@ -15,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L Switch:SW_Push Reset1
+L maincontroller-rescue:SW_Push-Switch Reset1
 U 1 1 5BB7D413
 P 5600 5100
 F 0 "Reset1" H 5600 5385 50  0000 C CNN
@@ -26,7 +26,7 @@ F 3 "" H 5600 5300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x06 J2
+L maincontroller-rescue:Conn_01x06-Connector_Generic J2
 U 1 1 5BB7E71D
 P 9200 6000
 F 0 "J2" H 9280 5992 50  0000 L CNN
@@ -37,7 +37,7 @@ F 3 "~" H 9200 6000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L arduino:Arduino_Mega2560_Shield XA1
+L maincontroller-rescue:Arduino_Mega2560_Shield-arduino XA1
 U 1 1 5BB7EBA8
 P 7200 3950
 F 0 "XA1" H 7200 1570 60  0000 C CNN
@@ -48,7 +48,7 @@ F 3 "https://store.arduino.cc/arduino-mega-2560-rev3" H 7900 6700 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x04 J5
+L maincontroller-rescue:Conn_01x04-Connector_Generic J5
 U 1 1 5BB7F576
 P 2900 6250
 F 0 "J5" H 2980 6242 50  0000 L CNN
@@ -59,7 +59,7 @@ F 3 "~" H 2900 6250 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Connector:Conn_01x05_Female J4
+L maincontroller-rescue:Conn_01x05_Female-Connector J4
 U 1 1 5BB7E5BD
 P 2050 3350
 F 0 "J4" H 2077 3326 50  0000 L CNN
@@ -70,7 +70,7 @@ F 3 "~" H 2050 3350 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x04 J1
+L maincontroller-rescue:Conn_01x04-Connector_Generic J1
 U 1 1 5BB80B10
 P 9600 2600
 F 0 "J1" H 9680 2592 50  0000 L CNN
@@ -81,7 +81,7 @@ F 3 "~" H 9600 2600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L MCP4725:MCP4725 Vorne_links1
+L maincontroller-rescue:MCP4725-MCP4725 Vorne_links1
 U 1 1 5BB8C41D
 P 2750 2600
 F 0 "Vorne_links1" V 3064 2468 50  0000 C CNN
@@ -92,7 +92,7 @@ F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf" H 2800 2900 50 
 	0    -1   -1   0   
 $EndComp
 $Comp
-L MCP4725:MCP4725 Vorne_rechts1
+L maincontroller-rescue:MCP4725-MCP4725 Vorne_rechts1
 U 1 1 5BB8C793
 P 2750 3500
 F 0 "Vorne_rechts1" V 3064 3368 50  0000 C CNN
@@ -103,7 +103,7 @@ F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf" H 2800 3800 50 
 	0    -1   -1   0   
 $EndComp
 $Comp
-L MCP4725:MCP4725 Hinten_links1
+L maincontroller-rescue:MCP4725-MCP4725 Hinten_links1
 U 1 1 5BB8C852
 P 2750 4400
 F 0 "Hinten_links1" V 3064 4268 50  0000 C CNN
@@ -114,7 +114,7 @@ F 3 "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf" H 2800 4700 50 
 	0    -1   -1   0   
 $EndComp
 $Comp
-L MCP4725:MCP4725 Hinten_rechts1
+L maincontroller-rescue:MCP4725-MCP4725 Hinten_rechts1
 U 1 1 5BB8C992
 P 2750 5300
 F 0 "Hinten_rechts1" V 3064 5168 50  0000 C CNN
@@ -181,7 +181,7 @@ Wire Wire Line
 	5400 5100 5400 5200
 Connection ~ 5400 5200
 $Comp
-L Device:R R1
+L maincontroller-rescue:R-Device R1
 U 1 1 5BB91DD8
 P 3250 3000
 F 0 "R1" V 3043 3000 50  0000 C CNN
@@ -192,7 +192,7 @@ F 3 "~" H 3250 3000 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R2
+L maincontroller-rescue:R-Device R2
 U 1 1 5BB922C9
 P 3250 3900
 F 0 "R2" V 3043 3900 50  0000 C CNN
@@ -203,7 +203,7 @@ F 3 "~" H 3250 3900 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R3
+L maincontroller-rescue:R-Device R3
 U 1 1 5BB9238D
 P 3250 4800
 F 0 "R3" V 3043 4800 50  0000 C CNN
@@ -214,7 +214,7 @@ F 3 "~" H 3250 4800 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R4
+L maincontroller-rescue:R-Device R4
 U 1 1 5BB923E1
 P 3250 5700
 F 0 "R4" V 3043 5700 50  0000 C CNN
@@ -360,7 +360,7 @@ Connection ~ 5300 5800
 Wire Wire Line
 	5300 5800 4100 5800
 $Comp
-L Device:R R5
+L maincontroller-rescue:R-Device R5
 U 1 1 5BBD15F0
 P 3250 6250
 F 0 "R5" V 3043 6250 50  0000 C CNN
@@ -381,7 +381,7 @@ Wire Wire Line
 Wire Wire Line
 	3800 6350 3800 5900
 $Comp
-L Device:R R6
+L maincontroller-rescue:R-Device R6
 U 1 1 5BBDE040
 P 3950 5900
 F 0 "R6" V 3743 5900 50  0000 C CNN
@@ -471,7 +471,7 @@ Wire Wire Line
 Wire Wire Line
 	5850 2950 5850 3100
 $Comp
-L Connector_Generic:Conn_01x04 J6
+L maincontroller-rescue:Conn_01x04-Connector_Generic J6
 U 1 1 5BD2D1DF
 P 3950 4100
 F 0 "J6" H 3870 3675 50  0000 C CNN
@@ -482,7 +482,7 @@ F 3 "~" H 3950 4100 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:R R11
+L maincontroller-rescue:R-Device R11
 U 1 1 5BD2D2C8
 P 4550 4550
 F 0 "R11" H 4480 4504 50  0000 R CNN
@@ -493,7 +493,7 @@ F 3 "~" H 4550 4550 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:R R7
+L maincontroller-rescue:R-Device R7
 U 1 1 5BD32A4E
 P 4300 3900
 F 0 "R7" V 4093 3900 50  0000 C CNN
@@ -504,7 +504,7 @@ F 3 "~" H 4300 3900 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R15
+L maincontroller-rescue:R-Device R15
 U 1 1 5BD32B64
 P 5550 3900
 F 0 "R15" V 5343 3900 50  0000 C CNN
@@ -519,7 +519,7 @@ Wire Wire Line
 Wire Wire Line
 	5450 3750 5450 3000
 $Comp
-L Device:R R16
+L maincontroller-rescue:R-Device R16
 U 1 1 5BD4DE20
 P 5550 4000
 F 0 "R16" V 5343 4000 50  0000 C CNN
@@ -530,7 +530,7 @@ F 3 "~" H 5550 4000 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R17
+L maincontroller-rescue:R-Device R17
 U 1 1 5BD4DE60
 P 5550 4100
 F 0 "R17" V 5343 4100 50  0000 C CNN
@@ -541,7 +541,7 @@ F 3 "~" H 5550 4100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R18
+L maincontroller-rescue:R-Device R18
 U 1 1 5BD4DE9E
 P 5550 4200
 F 0 "R18" V 5343 4200 50  0000 C CNN
@@ -552,7 +552,7 @@ F 3 "~" H 5550 4200 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R8
+L maincontroller-rescue:R-Device R8
 U 1 1 5BD88C7C
 P 4300 4000
 F 0 "R8" V 4093 4000 50  0000 C CNN
@@ -563,7 +563,7 @@ F 3 "~" H 4300 4000 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R9
+L maincontroller-rescue:R-Device R9
 U 1 1 5BD88CBE
 P 4300 4100
 F 0 "R9" V 4093 4100 50  0000 C CNN
@@ -574,7 +574,7 @@ F 3 "~" H 4300 4100 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R10
+L maincontroller-rescue:R-Device R10
 U 1 1 5BD88D02
 P 4300 4200
 F 0 "R10" V 4093 4200 50  0000 C CNN
@@ -585,7 +585,7 @@ F 3 "~" H 4300 4200 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L Device:R R12
+L maincontroller-rescue:R-Device R12
 U 1 1 5BD88DC2
 P 4650 4550
 F 0 "R12" H 4580 4504 50  0000 R CNN
@@ -596,7 +596,7 @@ F 3 "~" H 4650 4550 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:R R13
+L maincontroller-rescue:R-Device R13
 U 1 1 5BD88E0A
 P 4750 4550
 F 0 "R13" H 4680 4504 50  0000 R CNN
@@ -607,7 +607,7 @@ F 3 "~" H 4750 4550 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L Device:R R14
+L maincontroller-rescue:R-Device R14
 U 1 1 5BD88E58
 P 4850 4550
 F 0 "R14" H 4780 4504 50  0000 R CNN
@@ -690,7 +690,7 @@ Wire Wire Line
 Wire Wire Line
 	8750 5800 8500 5800
 $Comp
-L Connector_Generic:Conn_01x02 Bus1
+L maincontroller-rescue:Conn_01x02-Connector_Generic Bus1
 U 1 1 5BC4BCB9
 P 5450 2850
 F 0 "Bus1" H 5370 2525 50  0000 C CNN
@@ -711,11 +711,11 @@ Wire Wire Line
 Wire Wire Line
 	5900 2850 5900 2900
 $Comp
-L Connector:Conn_01x03_Female relays1
+L maincontroller-rescue:Conn_01x05_Female-Connector relays1
 U 1 1 5BBFA89A
 P 9700 3400
 F 0 "relays1" H 9727 3426 50  0000 L CNN
-F 1 "Conn_01x05_Female" H 9727 3335 50  0000 L CNN
+F 1 "Conn_01x05_Female-Connector" H 9727 3335 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 9700 3400 50  0001 C CNN
 F 3 "~" H 9700 3400 50  0001 C CNN
 	1    9700 3400

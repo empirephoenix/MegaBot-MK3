@@ -1,11 +1,11 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# secondarycontroller-rescue_Arduino_Uno_Shield-arduino
+# Arduino_Uno_Shield-arduino
 #
-DEF secondarycontroller-rescue_Arduino_Uno_Shield-arduino XA 0 40 Y Y 1 F N
+DEF Arduino_Uno_Shield-arduino XA 0 40 Y Y 1 F N
 F0 "XA" 100 0 60 V V C CNN
-F1 "secondarycontroller-rescue_Arduino_Uno_Shield-arduino" -100 0 60 V V C CNN
+F1 "Arduino_Uno_Shield-arduino" -100 0 60 V V C CNN
 F2 "" 1800 3750 60 H I C CNN
 F3 "" 1800 3750 60 H I C CNN
 $FPLIST
@@ -81,11 +81,11 @@ X VIN VIN -1300 -1050 300 R 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_C-Device
+# C-Device
 #
-DEF secondarycontroller-rescue_C-Device C 0 10 N Y 1 F N
+DEF C-Device C 0 10 N Y 1 F N
 F0 "C" 25 100 50 H V L CNN
-F1 "secondarycontroller-rescue_C-Device" 25 -100 50 H V L CNN
+F1 "C-Device" 25 -100 50 H V L CNN
 F2 "" 38 -150 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -99,11 +99,11 @@ X ~ 2 0 -150 110 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_Conn_01x02_Female-Connector
+# Conn_01x02_Female-Connector
 #
-DEF secondarycontroller-rescue_Conn_01x02_Female-Connector J 0 40 Y N 1 F N
+DEF Conn_01x02_Female-Connector J 0 40 Y N 1 F N
 F0 "J" 0 100 50 H V C CNN
-F1 "secondarycontroller-rescue_Conn_01x02_Female-Connector" 0 -200 50 H V C CNN
+F1 "Conn_01x02_Female-Connector" 0 -200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -119,11 +119,11 @@ X Pin_2 2 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_Conn_01x03_Female-Connector
+# Conn_01x03_Female-Connector
 #
-DEF secondarycontroller-rescue_Conn_01x03_Female-Connector J 0 40 Y N 1 F N
+DEF Conn_01x03_Female-Connector J 0 40 Y N 1 F N
 F0 "J" 0 200 50 H V C CNN
-F1 "secondarycontroller-rescue_Conn_01x03_Female-Connector" 0 -200 50 H V C CNN
+F1 "Conn_01x03_Female-Connector" 0 -200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -142,11 +142,11 @@ X Pin_3 3 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_Conn_01x04_Female-Connector
+# Conn_01x04_Female-Connector
 #
-DEF secondarycontroller-rescue_Conn_01x04_Female-Connector J 0 40 Y N 1 F N
+DEF Conn_01x04_Female-Connector J 0 40 Y N 1 F N
 F0 "J" 0 200 50 H V C CNN
-F1 "secondarycontroller-rescue_Conn_01x04_Female-Connector" 0 -300 50 H V C CNN
+F1 "Conn_01x04_Female-Connector" 0 -300 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -168,11 +168,11 @@ X Pin_4 4 -200 -200 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_DIODE-pspice
+# DIODE-pspice
 #
-DEF secondarycontroller-rescue_DIODE-pspice D 0 40 Y N 1 F N
+DEF DIODE-pspice D 0 40 Y N 1 F N
 F0 "D" 0 150 50 H V C CNN
-F1 "secondarycontroller-rescue_DIODE-pspice" 0 -175 50 H V C CNN
+F1 "DIODE-pspice" 0 -175 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -183,11 +183,11 @@ X A 2 200 0 150 L 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_MCU3386-mcu3386
+# MCU3386-mcu3386
 #
-DEF secondarycontroller-rescue_MCU3386-mcu3386 U 0 40 Y Y 1 F N
+DEF MCU3386-mcu3386 U 0 40 Y Y 1 F N
 F0 "U" 0 0 50 H V C CNN
-F1 "secondarycontroller-rescue_MCU3386-mcu3386" 0 0 50 H V C CNN
+F1 "MCU3386-mcu3386" 0 0 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -207,11 +207,11 @@ X OUT2 ~ 600 -150 157 L 50 50 1 1 w
 ENDDRAW
 ENDDEF
 #
-# secondarycontroller-rescue_SW_Push-Switch
+# SW_Push-Switch
 #
-DEF secondarycontroller-rescue_SW_Push-Switch SW 0 40 N N 1 F N
+DEF SW_Push-Switch SW 0 40 N N 1 F N
 F0 "SW" 50 100 50 H V L CNN
-F1 "secondarycontroller-rescue_SW_Push-Switch" 0 -60 50 H V C CNN
+F1 "SW_Push-Switch" 0 -60 50 H V C CNN
 F2 "" 0 200 50 H I C CNN
 F3 "" 0 200 50 H I C CNN
 DRAW

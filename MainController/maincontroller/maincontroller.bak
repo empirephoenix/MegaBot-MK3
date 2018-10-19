@@ -716,7 +716,7 @@ U 1 1 5BBFA89A
 P 9700 3400
 F 0 "relays1" H 9727 3426 50  0000 L CNN
 F 1 "Conn_01x05_Female" H 9727 3335 50  0000 L CNN
-F 2 "Connector_JST:JST_EH_B05B-EH-A_1x03_P2.50mm_Vertical" H 9700 3400 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 9700 3400 50  0001 C CNN
 F 3 "~" H 9700 3400 50  0001 C CNN
 	1    9700 3400
 	1    0    0    -1  

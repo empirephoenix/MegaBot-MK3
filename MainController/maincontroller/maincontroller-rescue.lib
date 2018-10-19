@@ -1,11 +1,11 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# maincontroller-rescue_Arduino_Mega2560_Shield-arduino
+# Arduino_Mega2560_Shield-arduino
 #
-DEF maincontroller-rescue_Arduino_Mega2560_Shield-arduino XA 0 40 Y Y 1 F N
+DEF Arduino_Mega2560_Shield-arduino XA 0 40 Y Y 1 F N
 F0 "XA" 100 0 60 V V C CNN
-F1 "maincontroller-rescue_Arduino_Mega2560_Shield-arduino" -100 0 60 V V C CNN
+F1 "Arduino_Mega2560_Shield-arduino" -100 0 60 V V C CNN
 F2 "" 700 2750 60 H I C CNN
 F3 "" 700 2750 60 H I C CNN
 $FPLIST
@@ -148,11 +148,11 @@ X VIN VIN -1300 -2150 300 R 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_Conn_01x02-Connector_Generic
+# Conn_01x02-Connector_Generic
 #
-DEF maincontroller-rescue_Conn_01x02-Connector_Generic J 0 40 Y N 1 F N
+DEF Conn_01x02-Connector_Generic J 0 40 Y N 1 F N
 F0 "J" 0 100 50 H V C CNN
-F1 "maincontroller-rescue_Conn_01x02-Connector_Generic" 0 -200 50 H V C CNN
+F1 "Conn_01x02-Connector_Generic" 0 -200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -167,11 +167,11 @@ X Pin_2 2 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_Conn_01x04-Connector_Generic
+# Conn_01x04-Connector_Generic
 #
-DEF maincontroller-rescue_Conn_01x04-Connector_Generic J 0 40 Y N 1 F N
+DEF Conn_01x04-Connector_Generic J 0 40 Y N 1 F N
 F0 "J" 0 200 50 H V C CNN
-F1 "maincontroller-rescue_Conn_01x04-Connector_Generic" 0 -300 50 H V C CNN
+F1 "Conn_01x04-Connector_Generic" 0 -300 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -190,11 +190,11 @@ X Pin_4 4 -200 -200 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_Conn_01x05_Female-Connector
+# Conn_01x05_Female-Connector
 #
-DEF maincontroller-rescue_Conn_01x05_Female-Connector J 0 40 Y N 1 F N
+DEF Conn_01x05_Female-Connector J 0 40 Y N 1 F N
 F0 "J" 0 300 50 H V C CNN
-F1 "maincontroller-rescue_Conn_01x05_Female-Connector" 0 -300 50 H V C CNN
+F1 "Conn_01x05_Female-Connector" 0 -300 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -219,11 +219,11 @@ X Pin_5 5 -200 -200 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_Conn_01x06-Connector_Generic
+# Conn_01x06-Connector_Generic
 #
-DEF maincontroller-rescue_Conn_01x06-Connector_Generic J 0 40 Y N 1 F N
+DEF Conn_01x06-Connector_Generic J 0 40 Y N 1 F N
 F0 "J" 0 300 50 H V C CNN
-F1 "maincontroller-rescue_Conn_01x06-Connector_Generic" 0 -400 50 H V C CNN
+F1 "Conn_01x06-Connector_Generic" 0 -400 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -246,11 +246,11 @@ X Pin_6 6 -200 -300 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_MCP4725-MCP4725
+# MCP4725-MCP4725
 #
-DEF maincontroller-rescue_MCP4725-MCP4725 U 0 40 Y Y 1 F N
+DEF MCP4725-MCP4725 U 0 40 Y Y 1 F N
 F0 "U" -500 150 50 H V L CNN
-F1 "maincontroller-rescue_MCP4725-MCP4725" 150 150 50 H V R CNN
+F1 "MCP4725-MCP4725" 150 150 50 H V R CNN
 F2 "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Horizontal" 50 -550 50 H I C CNN
 F3 "" 50 300 50 H I C CNN
 $FPLIST
@@ -267,11 +267,11 @@ X Output 6 -400 -350 100 U 50 50 1 1 O
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_R-Device
+# R-Device
 #
-DEF maincontroller-rescue_R-Device R 0 0 N Y 1 F N
+DEF R-Device R 0 0 N Y 1 F N
 F0 "R" 80 0 50 V V C CNN
-F1 "maincontroller-rescue_R-Device" 0 0 50 V V C CNN
+F1 "R-Device" 0 0 50 V V C CNN
 F2 "" -70 0 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -284,11 +284,11 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# maincontroller-rescue_SW_Push-Switch
+# SW_Push-Switch
 #
-DEF maincontroller-rescue_SW_Push-Switch SW 0 40 N N 1 F N
+DEF SW_Push-Switch SW 0 40 N N 1 F N
 F0 "SW" 50 100 50 H V L CNN
-F1 "maincontroller-rescue_SW_Push-Switch" 0 -60 50 H V C CNN
+F1 "SW_Push-Switch" 0 -60 50 H V C CNN
 F2 "" 0 200 50 H I C CNN
 F3 "" 0 200 50 H I C CNN
 DRAW

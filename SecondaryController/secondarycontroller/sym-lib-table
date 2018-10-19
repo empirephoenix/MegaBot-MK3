@@ -1,3 +1,4 @@
 (sym_lib_table
-  (lib (name mcu3386)(type Legacy)(uri /home/empire/workspace/MegaBot-MK3/SecondaryController/secondarycontroller/mcu3386.lib)(options "")(descr ""))
+  (lib (name secondarycontroller-rescue)(type Legacy)(uri ${KIPRJMOD}/secondarycontroller-rescue.lib)(options "")(descr ""))
+  (lib (name mcu3386)(type Legacy)(uri ${KIPRJMOD}/mcu3386.lib)(options "")(descr ""))
 )

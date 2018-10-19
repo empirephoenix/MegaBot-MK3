@@ -1,4 +1,5 @@
 (sym_lib_table
   (lib (name secondarycontroller-rescue)(type Legacy)(uri ${KIPRJMOD}/secondarycontroller-rescue.lib)(options "")(descr ""))
   (lib (name mcu3386)(type Legacy)(uri ${KIPRJMOD}/mcu3386.lib)(options "")(descr ""))
+  (lib (name arduino)(type Legacy)(uri /home/comfix/Projects/C++/MegaBot-MK3/arduino-kicad-library/arduino.lib)(options "")(descr ""))
 )

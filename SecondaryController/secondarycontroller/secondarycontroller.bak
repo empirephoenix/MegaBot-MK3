@@ -20,7 +20,7 @@ U 1 1 5BBE520D
 P 4100 2750
 F 0 "XA1" H 4100 4137 60  0000 C CNN
 F 1 "Arduino_Uno_Shield" H 4100 4031 60  0000 C CNN
-F 2 "" H 5900 6500 60  0001 C CNN
+F 2 "Arduino:Arduino_Uno_Shield" H 5900 6500 60  0001 C CNN
 F 3 "https://store.arduino.cc/arduino-uno-rev3" H 5900 6500 60  0001 C CNN
 	1    4100 2750
 	1    0    0    -1  
@@ -54,21 +54,10 @@ U 1 1 5BBE583A
 P 2400 4300
 F 0 "CF15" V 2148 4300 50  0000 C CNN
 F 1 "C" V 2239 4300 50  0000 C CNN
-F 2 "Capacitor_THT:C_Rect_L41.5mm_W19.0mm_P37.50mm_MKS4" H 2438 4150 50  0001 C CNN
+F 2 "Capacitor_THT:C_Rect_L41.5mm_W13.0mm_P37.50mm_MKS4" H 2438 4150 50  0001 C CNN
 F 3 "~" H 2400 4300 50  0001 C CNN
 	1    2400 4300
 	0    1    1    0   
-$EndComp
-$Comp
-L secondarycontroller-rescue:DIODE-pspice D2
-U 1 1 5BBE5A38
-P 2550 5100
-F 0 "D2" V 2596 4972 50  0000 R CNN
-F 1 "DIODE" V 2505 4972 50  0000 R CNN
-F 2 "Diode_THT:D_5W_P12.70mm_Horizontal" H 2550 5100 50  0001 C CNN
-F 3 "~" H 2550 5100 50  0001 C CNN
-	1    2550 5100
-	1    0    0    -1  
 $EndComp
 $Comp
 L secondarycontroller-rescue:SW_Push-Switch SW2
@@ -76,7 +65,7 @@ U 1 1 5BBE645A
 P 4100 4300
 F 0 "SW2" H 4100 4585 50  0000 C CNN
 F 1 "Reset" H 4100 4494 50  0000 C CNN
-F 2 "Button_Switch_THT:SW_DIP_SPSTx01_Piano_10.8x4.1mm_W7.62mm_P2.54mm" H 4100 4500 50  0001 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 4100 4500 50  0001 C CNN
 F 3 "" H 4100 4500 50  0001 C CNN
 	1    4100 4300
 	1    0    0    -1  
@@ -95,12 +84,12 @@ $EndComp
 $Comp
 L secondarycontroller-rescue:SW_Push-Switch SW1
 U 1 1 5BBE694D
-P 5600 2100
-F 0 "SW1" H 5600 2385 50  0000 C CNN
-F 1 "Calibrate" H 5600 2294 50  0000 C CNN
-F 2 "Button_Switch_THT:SW_DIP_SPSTx01_Piano_10.8x4.1mm_W7.62mm_P2.54mm" H 5600 2300 50  0001 C CNN
-F 3 "" H 5600 2300 50  0001 C CNN
-	1    5600 2100
+P 5600 2800
+F 0 "SW1" H 5600 3085 50  0000 C CNN
+F 1 "Calibrate" H 5600 2994 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm" H 5600 3000 50  0001 C CNN
+F 3 "" H 5600 3000 50  0001 C CNN
+	1    5600 2800
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -112,44 +101,8 @@ Wire Wire Line
 Wire Wire Line
 	3900 4300 3250 4300
 Connection ~ 2550 3600
-$Comp
-L secondarycontroller-rescue:MCU3386-mcu3386 U1
-U 1 1 5BBE76D9
-P 1300 4750
-F 0 "U1" H 1350 4865 50  0000 C CNN
-F 1 "MCU3386" H 1350 4774 50  0000 C CNN
-F 2 "" H 1300 4750 50  0001 C CNN
-F 3 "" H 1300 4750 50  0001 C CNN
-	1    1300 4750
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2550 4300 2550 3600
-$Comp
-L secondarycontroller-rescue:DIODE-pspice D1
-U 1 1 5BBE875F
-P 2200 5200
-F 0 "D1" H 2200 4935 50  0000 C CNN
-F 1 "DIODE" H 2200 5026 50  0000 C CNN
-F 2 "Diode_THT:D_5W_P12.70mm_Horizontal" H 2200 5200 50  0001 C CNN
-F 3 "~" H 2200 5200 50  0001 C CNN
-	1    2200 5200
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	1900 5200 2000 5200
-Wire Wire Line
-	1900 5100 2350 5100
-Wire Wire Line
-	2750 4300 2750 4500
-Connection ~ 2750 4300
-Wire Wire Line
-	2750 4300 2550 4300
-Wire Wire Line
-	2400 5200 2800 5200
-Connection ~ 2800 3800
-Wire Wire Line
-	2800 3800 2800 5200
 Wire Wire Line
 	2800 3700 2700 3700
 Wire Wire Line
@@ -159,34 +112,8 @@ Wire Wire Line
 Wire Wire Line
 	2900 4400 2900 5400
 Wire Wire Line
-	2900 5400 1900 5400
-Wire Wire Line
-	2750 5100 2750 5300
-Wire Wire Line
-	2750 5300 1900 5300
-Connection ~ 2750 5100
-Wire Wire Line
-	800  5150 600  5150
-Wire Wire Line
-	600  5150 600  4500
-Wire Wire Line
-	600  4500 2750 4500
-Connection ~ 2750 4500
-Wire Wire Line
-	2750 4500 2750 5100
-Wire Wire Line
-	800  5250 700  5250
-Wire Wire Line
-	700  5250 700  3700
-Wire Wire Line
 	700  3700 2700 3700
 Connection ~ 2700 3700
-Wire Wire Line
-	800  5050 650  5050
-Wire Wire Line
-	650  5050 650  5650
-Wire Wire Line
-	650  5650 5850 5650
 Wire Wire Line
 	5850 5650 5850 2600
 Wire Wire Line
@@ -198,9 +125,9 @@ Wire Wire Line
 Wire Wire Line
 	5900 5700 550  5700
 Wire Wire Line
-	550  5700 550  4950
+	550  5700 550  6150
 Wire Wire Line
-	550  4950 800  4950
+	550  6150 2300 6150
 Connection ~ 2550 4300
 Wire Wire Line
 	2800 2900 1550 2900
@@ -220,32 +147,20 @@ F 3 "~" H 6200 2300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6000 2400 5400 2400
-Wire Wire Line
 	6000 2200 6000 2050
 Wire Wire Line
 	6000 2050 6300 2050
 Wire Wire Line
-	6300 2050 6300 5000
+	6300 2050 6300 2800
 Wire Wire Line
 	6300 5000 3250 5000
 Wire Wire Line
 	3250 5000 3250 4300
 Connection ~ 3250 4300
 Wire Wire Line
-	3250 4300 2750 4300
-Wire Wire Line
-	5400 1900 5650 1900
-Wire Wire Line
-	5650 1900 5650 1600
-Wire Wire Line
 	5650 1600 6050 1600
 Wire Wire Line
 	5400 2000 5700 2000
-Wire Wire Line
-	5700 2000 5700 1700
-Wire Wire Line
-	5700 1700 6050 1700
 Wire Wire Line
 	6050 1500 5850 1500
 Wire Wire Line
@@ -259,11 +174,6 @@ Wire Wire Line
 	6200 1900 6200 5400
 Wire Wire Line
 	6200 5400 2900 5400
-Connection ~ 2900 5400
-Wire Wire Line
-	5800 2100 5850 2100
-Wire Wire Line
-	5850 2100 5850 2050
 Wire Wire Line
 	5850 1500 5850 2050
 $Comp
@@ -281,5 +191,84 @@ Wire Wire Line
 	2800 2000 2500 2000
 Wire Wire Line
 	2500 2100 2800 2100
-Connection ~ 5850 2050
+$Comp
+L Connector:Conn_01x07_Female J2
+U 1 1 5BCA6134
+P 2500 6150
+F 0 "J2" H 2527 6176 50  0000 L CNN
+F 1 "Conn_01x07_Female" H 2527 6085 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical" H 2500 6150 50  0001 C CNN
+F 3 "~" H 2500 6150 50  0001 C CNN
+	1    2500 6150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	700  3700 700  5850
+Wire Wire Line
+	700  5850 2300 5850
+Wire Wire Line
+	5850 5650 1900 5650
+Wire Wire Line
+	1900 5650 1900 6050
+Wire Wire Line
+	1900 6050 2300 6050
+Wire Wire Line
+	2900 5400 2900 5550
+Wire Wire Line
+	2900 5550 1650 5550
+Wire Wire Line
+	1650 5550 1650 6450
+Wire Wire Line
+	1650 6450 2300 6450
+Connection ~ 2900 5400
+Wire Wire Line
+	2300 6250 1800 6250
+Wire Wire Line
+	1800 6250 1800 5600
+Wire Wire Line
+	1800 5600 6600 5600
+Wire Wire Line
+	6600 5600 6600 2250
+Wire Wire Line
+	6600 2250 5800 2250
+Wire Wire Line
+	5800 2300 5400 2300
+Wire Wire Line
+	2550 4300 3250 4300
+Wire Wire Line
+	2550 5750 2200 5750
+Wire Wire Line
+	2200 5750 2200 5950
+Wire Wire Line
+	2200 5950 2300 5950
+Wire Wire Line
+	2200 5950 2200 6350
+Wire Wire Line
+	2200 6350 2300 6350
+Connection ~ 2200 5950
+Wire Wire Line
+	2550 4300 2550 5750
+Wire Wire Line
+	5650 1600 5650 1800
+Wire Wire Line
+	5650 1800 5700 1800
+Wire Wire Line
+	5700 1800 5700 2000
+Wire Wire Line
+	5750 1900 5750 1700
+Wire Wire Line
+	5400 1900 5750 1900
+Wire Wire Line
+	5750 1700 6050 1700
+Wire Wire Line
+	5800 2250 5800 2300
+Wire Wire Line
+	5800 2800 6300 2800
+Connection ~ 6300 2800
+Wire Wire Line
+	6300 2800 6300 5000
+Wire Wire Line
+	6000 2400 6000 2700
+Wire Wire Line
+	6000 2700 5400 2700
 $EndSCHEMATC

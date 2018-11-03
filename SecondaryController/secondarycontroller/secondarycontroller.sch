@@ -45,9 +45,7 @@ Wire Wire Line
 Wire Wire Line
 	2100 3600 2550 3600
 Wire Wire Line
-	2550 3600 2550 3300
-Wire Wire Line
-	2550 3300 2800 3300
+	2550 3600 2550 3400
 $Comp
 L secondarycontroller-rescue:C-Device CF15
 U 1 1 5BBE583A
@@ -267,4 +265,9 @@ Wire Wire Line
 	5700 1700 5700 2000
 Wire Wire Line
 	5700 1700 6050 1700
+Wire Wire Line
+	2800 3400 2550 3400
+Connection ~ 2550 3400
+Wire Wire Line
+	2550 3400 2550 3300
 $EndSCHEMATC

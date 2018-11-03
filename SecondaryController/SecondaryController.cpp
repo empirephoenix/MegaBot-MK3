@@ -2,20 +2,20 @@
 #include <EEPROM.h>
 #include <APA102.h>
 
-#define PIN_EXTEND 9
-#define PIN_RETRACT 11
-#define PIN_SERVO_POSITION A1
+#define PIN_EXTEND 8
+#define PIN_RETRACT 10
+#define PIN_FAILURE 11
+#define PIN_SERVO_POSITION A0
 #define SERVO_STOP_CYCLES 60
 #define DEADBAND 2
 #define CALIBRATE_ANTI_BOUNCE_COUNT 1000
 
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
-#define NUM_CHANNELS 2
-#define CHANNEL_1 0
-#define CHANNEL_2 1
+#define NUM_CHANNELS 1
+#define CHANNEL 0
 
-#define PIN_LED_DATA 7
-#define PIN_LED_CLOCK 4
+#define PIN_LED_DATA 4
+#define PIN_LED_CLOCK 5
 #define COLOR_DIM_GREEN (0, 32, 0)
 #define COLOR_EXTEND (128,128,0)
 #define COLOR_RETRACT (0,255,0)
@@ -40,14 +40,14 @@ int blockingCount = 0;
 bool blocking = false;
 bool error = false;
 
-byte last_flank[NUM_CHANNELS];
-volatile int receiver_input[NUM_CHANNELS];
-volatile int raw_inputs[NUM_CHANNELS];
-volatile long diff;
+byte last_flank = 0;
+volatile int receiver_input = 0;
+volatile int raw_inputs = 0;
+volatile long diff = 0;
 //not volatile only interrupt handler
-unsigned long current_time_int0;
-unsigned long upflank_time[NUM_CHANNELS];
-unsigned long loop_timer;
+unsigned long current_time_int0 = 0;
+unsigned long upflank_time = 0;
+unsigned long loop_timer = 0;
 
 void out(byte r, byte g, byte b) {
 	leds[0].red = r;
@@ -260,12 +260,12 @@ ISR(PCINT0_vect) {
 
 	//Channel 1
 	if (PINB & B00000001) {
-		if (last_flank[CHANNEL_1] == 0) {
-			last_flank[CHANNEL_1] = 1;
-			upflank_time[CHANNEL_1] = current_time_int0;
+		if (last_flank == 0) {
+			last_flank = 1;
+			upflank_time = current_time_int0;
 		}
-	} else if (last_flank[CHANNEL_1] == 1) {
-		last_flank[CHANNEL_1] = 0;
-		raw_inputs[CHANNEL_1] = current_time_int0 - upflank_time[CHANNEL_1];
+	} else if (last_flank == 1) {
+		last_flank = 0;
+		raw_inputs = current_time_int0 - upflank_time;
 	}
 }

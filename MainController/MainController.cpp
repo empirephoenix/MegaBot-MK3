@@ -28,7 +28,6 @@ void out(int idx, byte r, byte g, byte b) {
 void setup() {
 	Serial.begin(115200);
 
-	pinMode(PIN_CALIBRATE, INPUT);
 	pinMode(PIN_BRAKING_STAGE_ONE, OUTPUT);
 	pinMode(PIN_BRAKING_STAGE_TWO, OUTPUT);
 	pinMode(PIN_MOTOR_CONTROLLER_PWR, OUTPUT);
@@ -226,10 +225,14 @@ void hangWithDACError(bool error) {
 	out(0, 255, 0, 0);
 	out(1, 0, 0, 0);
 	ledStrip.write(leds, LED_COUNT, 4);
-	Serial.println(analogRead(0) / 1024 * 5);
-	Serial.println(analogRead(1) / 1024 * 5);
-	Serial.println(analogRead(2) / 1024 * 5);
-	Serial.println(analogRead(3) / 1024 * 5);
+	Serial.println("VORNE_LINKS_OUTPUT");
+	Serial.println(analogRead(VORNE_LINKS_OUTPUT) / 1024 * 5);
+	Serial.println("VORNE_RECHTS_OUTPUT");
+	Serial.println(analogRead(VORNE_RECHTS_OUTPUT) / 1024 * 5);
+	Serial.println("HINTEN_LINKS_OUTPUT");
+	Serial.println(analogRead(HINTEN_LINKS_OUTPUT) / 1024 * 5);
+	Serial.println("HINTEN_RECHTS_OUTPUT");
+	Serial.println(analogRead(HINTEN_RECHTS_OUTPUT) / 1024 * 5);
 	while (error)
 		;
 
@@ -240,13 +243,13 @@ void startup() {
 	stopMotors();
 	delay(5);
 	Serial.println("Initial to 0V DAC test");
-	if (analogRead(0) > 10)
+	if (analogRead(VORNE_LINKS_OUTPUT) > 10)
 		error = true;
-	if (analogRead(1) > 10)
+	if (analogRead(VORNE_RECHTS_OUTPUT) > 10)
 		error = true;
-	if (analogRead(2) > 10)
+	if (analogRead(HINTEN_LINKS_OUTPUT) > 10)
 		error = true;
-	if (analogRead(3) > 10)
+	if (analogRead(HINTEN_RECHTS_OUTPUT) > 10)
 		error = true;
 
 	if (error) {
@@ -261,13 +264,13 @@ void startup() {
 	hinten_rechts.setVoltage(1024);
 	hinten_links.setVoltage(1024);
 	delay(5);
-	if (analogRead(0) < 220)
+	if (analogRead(VORNE_LINKS_OUTPUT) < 220)
 		error = true;
-	if (analogRead(1) < 220)
+	if (analogRead(VORNE_RECHTS_OUTPUT) < 220)
 		error = true;
-	if (analogRead(2) < 220)
+	if (analogRead(HINTEN_LINKS_OUTPUT) < 220)
 		error = true;
-	if (analogRead(3) < 220)
+	if (analogRead(HINTEN_RECHTS_OUTPUT) < 220)
 		error = true;
 
 	if (error) {

@@ -26,29 +26,6 @@ F 3 "https://store.arduino.cc/arduino-uno-rev3" H 5900 6500 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L secondarycontroller-rescue:Conn_01x02_Female-Connector J3
-U 1 1 5BBE53F0
-P 1900 3600
-F 0 "J3" H 1794 3275 50  0000 C CNN
-F 1 "VIN" H 1794 3366 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 1900 3600 50  0001 C CNN
-F 3 "~" H 1900 3600 50  0001 C CNN
-	1    1900 3600
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	2100 3500 2600 3500
-Wire Wire Line
-	2600 3500 2600 3800
-Wire Wire Line
-	2600 3800 2800 3800
-Wire Wire Line
-	2100 3600 2550 3600
-Wire Wire Line
-	2550 3600 2550 3300
-Wire Wire Line
-	2550 3300 2800 3300
-$Comp
 L secondarycontroller-rescue:C-Device CF15
 U 1 1 5BBE583A
 P 2400 4300
@@ -100,9 +77,6 @@ Wire Wire Line
 	5600 4300 4300 4300
 Wire Wire Line
 	3900 4300 3250 4300
-Connection ~ 2550 3600
-Wire Wire Line
-	2550 4300 2550 3600
 Wire Wire Line
 	2800 3700 2700 3700
 Wire Wire Line
@@ -112,7 +86,7 @@ Wire Wire Line
 Wire Wire Line
 	2900 4400 2900 5400
 Wire Wire Line
-	700  3700 2700 3700
+	700  3700 2200 3700
 Connection ~ 2700 3700
 Wire Wire Line
 	5850 5650 5850 2600
@@ -130,7 +104,7 @@ Wire Wire Line
 	550  6150 2300 6150
 Connection ~ 2550 4300
 Wire Wire Line
-	2800 2900 1550 2900
+	2800 2900 2300 2900
 Wire Wire Line
 	1550 2900 1550 4300
 Wire Wire Line
@@ -267,4 +241,71 @@ Wire Wire Line
 	5700 1700 5700 2000
 Wire Wire Line
 	5700 1700 6050 1700
+Wire Wire Line
+	2800 3400 2550 3400
+Connection ~ 2550 3400
+$Comp
+L Connector:Conn_01x03_Male Potentiometer1
+U 1 1 5BDD001F
+P 2000 2550
+F 0 "Potentiometer1" H 2106 2828 50  0000 C CNN
+F 1 "Conn_01x03_Male" H 2106 2737 50  0000 C CNN
+F 2 "" H 2000 2550 50  0001 C CNN
+F 3 "~" H 2000 2550 50  0001 C CNN
+	1    2000 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2200 2450 2550 2450
+Connection ~ 2200 3700
+Wire Wire Line
+	2200 3700 2700 3700
+Wire Wire Line
+	2300 2900 2300 2550
+Wire Wire Line
+	2300 2550 2200 2550
+Connection ~ 2300 2900
+Wire Wire Line
+	2300 2900 1550 2900
+$Comp
+L secondarycontroller-rescue:Conn_01x02_Female-Connector J3
+U 1 1 5BBE53F0
+P 1150 3200
+F 0 "J3" H 1044 2875 50  0000 C CNN
+F 1 "VIN" H 1044 2966 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 1150 3200 50  0001 C CNN
+F 3 "~" H 1150 3200 50  0001 C CNN
+	1    1150 3200
+	-1   0    0    1   
+$EndComp
+$Comp
+L pspice:DIODE D1
+U 1 1 5BDD7261
+P 1900 3200
+F 0 "D1" H 1900 3465 50  0000 C CNN
+F 1 "DIODE" H 1900 3374 50  0000 C CNN
+F 2 "Diode_THT:D_5W_P12.70mm_Horizontal" H 1900 3200 50  0001 C CNN
+F 3 "" H 1900 3200 50  0001 C CNN
+	1    1900 3200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1350 3200 1700 3200
+Wire Wire Line
+	2100 3200 2550 3200
+Wire Wire Line
+	2550 2450 2550 3200
+Connection ~ 2550 3200
+Wire Wire Line
+	2550 3200 2550 3400
+Wire Wire Line
+	2550 3400 2550 4300
+Wire Wire Line
+	2200 2650 2200 3700
+Wire Wire Line
+	1350 3100 1650 3100
+Wire Wire Line
+	1650 3100 1650 3800
+Wire Wire Line
+	1650 3800 2800 3800
 $EndSCHEMATC

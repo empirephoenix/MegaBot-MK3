@@ -11,11 +11,10 @@
 #define CALIBRATE_ANTI_BOUNCE_COUNT 1000
 
 #define EEPROM_MIN_MAX_ADDR_OFFSET 0
-#define NUM_CHANNELS 1
-#define CHANNEL 0
+#define PIN_RECEIVER 12
 
-#define PIN_LED_DATA 4
-#define PIN_LED_CLOCK 5
+#define PIN_LED_DATA 5
+#define PIN_LED_CLOCK 4
 #define COLOR_DIM_GREEN (0, 32, 0)
 #define COLOR_EXTEND (128,128,0)
 #define COLOR_RETRACT (0,255,0)
@@ -136,8 +135,9 @@ void setup() {
 		calibrate();
 	}
 
-	PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
-	PCMSK0 |= B00000101;
+	*digitalPinToPCMSK(PIN_RECEIVER) |= bit (digitalPinToPCMSKbit(PIN_RECEIVER));  // enable pin
+	PCIFR  |= bit (digitalPinToPCICRbit(PIN_RECEIVER)); // clear any outstanding interrupt
+	PCICR  |= bit (digitalPinToPCICRbit(PIN_RECEIVER)); // enable interrupt for the group
 
 	curPos = analogRead(PIN_SERVO_POSITION);
 	middleSteering();
@@ -203,22 +203,22 @@ void loop() {
 	long int potiMappedRawInput = 0;
 	if (sample >= min && sample <= max) {
 		curPos = curPos * 0.9 + sample * 0.1;
-		potiMappedRawInput = map(raw_inputs[0], 1000, 2000, min, max);
+		potiMappedRawInput = map(raw_inputs, 1000, 2000, min, max);
 		targetPos = targetPos * 0.9 + potiMappedRawInput * 0.1;
 	} else {
 		curPos = targetPos;
 	}
+	error = (diff > 250000 || raw_inputs < 800);
 
-	error = (diff > 250000 || raw_inputs[0] < 800);
+	if (error) {
+		middleSteering();
+		Serial.print("error ");
+	}
+	antiFlickeringAndMovement();
 	Serial.print(curPos);
 	Serial.print(" ");
 	Serial.println(targetPos);
-	if (error) {
-		middleSteering();
-		Serial.println("error");
-	}
 
-	antiFlickeringAndMovement();
 	processCalibrate();
 	updateLED();
 }
@@ -259,11 +259,9 @@ ISR(PCINT0_vect) {
 	current_time_int0 = micros();
 
 	//Channel 1
-	if (PINB & B00000001) {
-		if (last_flank == 0) {
-			last_flank = 1;
-			upflank_time = current_time_int0;
-		}
+	if (digitalRead(PIN_RECEIVER)) {
+		last_flank = 1;
+		upflank_time = current_time_int0;
 	} else if (last_flank == 1) {
 		last_flank = 0;
 		raw_inputs = current_time_int0 - upflank_time;

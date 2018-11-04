@@ -482,17 +482,6 @@ F 3 "~" H 3950 4100 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L maincontroller-rescue:R-Device R11
-U 1 1 5BD2D2C8
-P 4550 4550
-F 0 "R11" H 4480 4504 50  0000 R CNN
-F 1 "R2k7" H 4480 4595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" V 4480 4550 50  0001 C CNN
-F 3 "~" H 4550 4550 50  0001 C CNN
-	1    4550 4550
-	-1   0    0    1   
-$EndComp
-$Comp
 L maincontroller-rescue:R-Device R7
 U 1 1 5BD32A4E
 P 4300 3900
@@ -503,54 +492,10 @@ F 3 "~" H 4300 3900 50  0001 C CNN
 	1    4300 3900
 	0    1    1    0   
 $EndComp
-$Comp
-L maincontroller-rescue:R-Device R15
-U 1 1 5BD32B64
-P 5550 3900
-F 0 "R15" V 5343 3900 50  0000 C CNN
-F 1 "R4k7" V 5434 3900 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal" V 5480 3900 50  0001 C CNN
-F 3 "~" H 5550 3900 50  0001 C CNN
-	1    5550 3900
-	0    1    1    0   
-$EndComp
 Wire Wire Line
 	5600 3400 5600 3600
 Wire Wire Line
 	5450 3750 5450 3000
-$Comp
-L maincontroller-rescue:R-Device R16
-U 1 1 5BD4DE20
-P 5550 4000
-F 0 "R16" V 5343 4000 50  0000 C CNN
-F 1 "R4k7" V 5434 4000 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal" V 5480 4000 50  0001 C CNN
-F 3 "~" H 5550 4000 50  0001 C CNN
-	1    5550 4000
-	0    1    1    0   
-$EndComp
-$Comp
-L maincontroller-rescue:R-Device R17
-U 1 1 5BD4DE60
-P 5550 4100
-F 0 "R17" V 5343 4100 50  0000 C CNN
-F 1 "R4k7" V 5434 4100 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal" V 5480 4100 50  0001 C CNN
-F 3 "~" H 5550 4100 50  0001 C CNN
-	1    5550 4100
-	0    1    1    0   
-$EndComp
-$Comp
-L maincontroller-rescue:R-Device R18
-U 1 1 5BD4DE9E
-P 5550 4200
-F 0 "R18" V 5343 4200 50  0000 C CNN
-F 1 "R4k7" V 5434 4200 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P12.70mm_Horizontal" V 5480 4200 50  0001 C CNN
-F 3 "~" H 5550 4200 50  0001 C CNN
-	1    5550 4200
-	0    1    1    0   
-$EndComp
 $Comp
 L maincontroller-rescue:R-Device R8
 U 1 1 5BD88C7C
@@ -584,52 +529,9 @@ F 3 "~" H 4300 4200 50  0001 C CNN
 	1    4300 4200
 	0    1    1    0   
 $EndComp
-$Comp
-L maincontroller-rescue:R-Device R12
-U 1 1 5BD88DC2
-P 4650 4550
-F 0 "R12" H 4580 4504 50  0000 R CNN
-F 1 "R2k7" H 4580 4595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P2.54mm_Vertical" V 4580 4550 50  0001 C CNN
-F 3 "~" H 4650 4550 50  0001 C CNN
-	1    4650 4550
-	-1   0    0    1   
-$EndComp
-$Comp
-L maincontroller-rescue:R-Device R13
-U 1 1 5BD88E0A
-P 4750 4550
-F 0 "R13" H 4680 4504 50  0000 R CNN
-F 1 "R2k7" H 4680 4595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0309_L9.0mm_D3.2mm_P2.54mm_Vertical" V 4680 4550 50  0001 C CNN
-F 3 "~" H 4750 4550 50  0001 C CNN
-	1    4750 4550
-	-1   0    0    1   
-$EndComp
-$Comp
-L maincontroller-rescue:R-Device R14
-U 1 1 5BD88E58
-P 4850 4550
-F 0 "R14" H 4780 4504 50  0000 R CNN
-F 1 "R2k7" H 4780 4595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical" V 4780 4550 50  0001 C CNN
-F 3 "~" H 4850 4550 50  0001 C CNN
-	1    4850 4550
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	4550 4700 4650 4700
-Connection ~ 4650 4700
-Wire Wire Line
-	4650 4700 4700 4700
-Connection ~ 4750 4700
-Wire Wire Line
-	4750 4700 4850 4700
 Wire Wire Line
 	4700 4700 4700 5200
 Connection ~ 4700 4700
-Wire Wire Line
-	4700 4700 4750 4700
 Connection ~ 4700 5200
 Wire Wire Line
 	4700 5200 5400 5200
@@ -643,36 +545,22 @@ Wire Wire Line
 	4850 4400 4850 4200
 Connection ~ 4850 4200
 Wire Wire Line
-	4850 4200 5400 4200
-Wire Wire Line
 	4750 4400 4750 4100
 Connection ~ 4750 4100
-Wire Wire Line
-	4750 4100 5400 4100
 Wire Wire Line
 	4650 4400 4650 4000
 Wire Wire Line
 	4450 4000 4650 4000
 Connection ~ 4650 4000
 Wire Wire Line
-	4650 4000 5400 4000
-Wire Wire Line
 	4550 4400 4550 3900
 Connection ~ 4550 3900
-Wire Wire Line
-	4550 3900 5400 3900
-Wire Wire Line
-	5700 4200 5750 4200
-Wire Wire Line
-	5700 4100 5800 4100
 Wire Wire Line
 	5950 4000 5900 4000
 Wire Wire Line
 	5850 3900 5900 3900
 Wire Wire Line
 	5850 4000 5850 3900
-Wire Wire Line
-	5700 4000 5850 4000
 Wire Wire Line
 	5700 3900 5700 3750
 Wire Wire Line
@@ -727,12 +615,6 @@ Wire Wire Line
 	9100 3200 9100 2800
 Wire Wire Line
 	9100 2800 8500 2800
-Wire Wire Line
-	8500 2900 9000 2900
-Wire Wire Line
-	9000 3400 9500 3400
-Wire Wire Line
-	9000 2900 9000 3400
 Wire Wire Line
 	9500 3600 9200 3600
 Connection ~ 9200 3600
@@ -805,4 +687,35 @@ Wire Wire Line
 	9500 3500 9500 3600
 Wire Wire Line
 	9500 3300 9500 3200
+Wire Wire Line
+	8900 3400 8900 3200
+Wire Wire Line
+	8900 3200 8500 3200
+Wire Wire Line
+	8900 3400 9500 3400
+$Comp
+L Connector:Conn_01x01_Male MotorControllerPower
+U 1 1 5BDDE388
+P 9750 3000
+F 0 "MotorControllerPower" H 9723 2930 50  0000 R CNN
+F 1 "Conn_01x01_Male" H 9723 3021 50  0000 R CNN
+F 2 "" H 9750 3000 50  0001 C CNN
+F 3 "~" H 9750 3000 50  0001 C CNN
+	1    9750 3000
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9550 3000 8500 3000
+Wire Wire Line
+	4550 4700 4700 4700
+Wire Wire Line
+	4700 4700 4850 4700
+Wire Wire Line
+	4550 3900 5700 3900
+Wire Wire Line
+	4650 4000 5850 4000
+Wire Wire Line
+	4750 4100 5800 4100
+Wire Wire Line
+	4850 4200 5750 4200
 $EndSCHEMATC

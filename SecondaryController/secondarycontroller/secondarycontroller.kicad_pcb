@@ -1,8 +1,8 @@
-(kicad_pcb (version 20171130) (host pcbnew 5.0.0)
+(kicad_pcb (version 20171130) (host pcbnew "(5.0.0)")
 
   (general
     (thickness 1.6)
-    (drawings 0)
+    (drawings 1)
     (tracks 206)
     (zones 0)
     (modules 11)
@@ -749,6 +749,8 @@
       (rotate (xyz 0 0 0))
     )
   )
+
+  (gr_poly (pts (xy 217.17 107.95) (xy 144.78 107.95) (xy 144.78 52.07) (xy 217.17 52.07)) (layer Edge.Cuts) (width 0.15))
 
   (segment (start 172.72 102.87) (end 172.758592 102.908592) (width 2) (layer B.Cu) (net 0))
   (segment (start 172.72 100.33) (end 172.72 102.87) (width 2) (layer B.Cu) (net 0))

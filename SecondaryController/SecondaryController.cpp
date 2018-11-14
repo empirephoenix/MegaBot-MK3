@@ -6,7 +6,7 @@
 #define PIN_RETRACT 10
 #define PIN_FAILURE 11
 #define PIN_SERVO_POSITION A0
-#define SERVO_STOP_CYCLES 60
+#define SERVO_STOP_CYCLES 1
 #define DEADBAND 2
 #define CALIBRATE_ANTI_BOUNCE_COUNT 1000
 
@@ -20,33 +20,26 @@
 #define COLOR_RETRACT (0,255,0)
 #define COLOR_CALIBRATE_HOLD (0,0,128)
 #define COLOR_CALIBRATE_EXECUTE (0,0,255)
-#define COLOR_MOTOR_BLOCKING (200,255,255)
 #define COLOR_ERROR (255,0,0)
 
 APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
 rgb_color leds[1];
+RunningMedian filterdInput = RunningMedian(100);
+RunningMedian filterdSensor = RunningMedian(100);
 
 float targetPos = 0;
 float curPos = 0;
 int calibrateCount = 0;
 
-int delta;
 int min = -1;
 int max = -1;
 
-int lastPos = 0, lastDir = 0;
-int blockingCount = 0;
-bool blocking = false;
-bool error = false;
-
-byte last_flank = 0;
 volatile int receiver_input = 0;
 volatile int raw_inputs = 0;
 volatile long diff = 0;
 //not volatile only interrupt handler
-unsigned long current_time_int0 = 0;
-unsigned long upflank_time = 0;
-unsigned long loop_timer = 0;
+volatile unsigned long current_time_int0 = 0;
+volatile  unsigned long upflank_time = 0;
 
 void out(byte r, byte g, byte b) {
 	leds[0].red = r;
@@ -153,7 +146,7 @@ void processCalibrate() {
 		calibrateCount++;
 		out COLOR_CALIBRATE_HOLD;
 		if (calibrateCount == CALIBRATE_ANTI_BOUNCE_COUNT) {
-			updateLED();
+			updateLED(0, false);
 			calibrate();
 			calibrateCount = 0;
 		}
@@ -162,97 +155,67 @@ void processCalibrate() {
 	}
 }
 
-void updateLED() {
+void updateLED(float delta, bool error) {
 	if (error) {
 		out COLOR_ERROR;
 		return;
 	}
-
 	if (calibrateCount == CALIBRATE_ANTI_BOUNCE_COUNT) {
 		out COLOR_CALIBRATE_EXECUTE;
 		return;
 	}
-
 	if (calibrateCount > 0) {
 		out COLOR_CALIBRATE_HOLD;
 		return;
 	}
-
-	if(blocking) {
-		out COLOR_MOTOR_BLOCKING;
-		return;
-	}
-
 	if (delta > DEADBAND) {
 		out COLOR_EXTEND;
 		return;
 	}
-
 	if (delta < -DEADBAND) {
 		out COLOR_RETRACT;
 		return;
 	}
-
 	out COLOR_DIM_GREEN;
-
 }
 
 void loop() {
 	diff = micros() - current_time_int0;
 	int sample = analogRead(PIN_SERVO_POSITION);
 	long int potiMappedRawInput = 0;
-	if (sample >= min && sample <= max) {
-		curPos = curPos * 0.9 + sample * 0.1;
+	if (sample >= min && sample <= max && raw_inputs > 800 && raw_inputs < 2200) {
+		filterdSensor.add(sample);
+		curPos = filterdSensor.getMedian();
 		potiMappedRawInput = map(raw_inputs, 1000, 2000, min, max);
-		targetPos = targetPos * 0.9 + potiMappedRawInput * 0.1;
+		filterdInput.add(potiMappedRawInput);
+		targetPos = filterdInput.getMedian();
+		Serial.print(curPos);
+		Serial.print(" ");
+		Serial.println(targetPos);
 	} else {
 		curPos = targetPos;
 	}
-	error = (diff > 250000 || raw_inputs < 800);
+	bool error = (diff > 250000 || raw_inputs < 800);
 
 	if (error) {
 		middleSteering();
 		Serial.print("error ");
 	}
-	antiFlickeringAndMovement();
-	Serial.print(curPos);
-	Serial.print(" ");
-	Serial.println(targetPos);
+	float delta = antiFlickeringAndMovement();
 
 	processCalibrate();
-	updateLED();
+	updateLED(delta, error);
 }
 
-void antiFlickeringAndMovement() {
-	delta = targetPos - curPos;
-	if (blocking) {
-		if (--blockingCount == 0)
-			blocking = false;
-		stop();
+float antiFlickeringAndMovement() {
+	float delta = targetPos - curPos;
+	if (delta < - DEADBAND || delta > DEADBAND) {
+		move(delta);
+		return delta;
 	} else {
-		if (delta < - DEADBAND) {
-			if (lastDir) {
-				blocking = true;
-				blockingCount = SERVO_STOP_CYCLES;
-				lastDir = !lastDir;
-				return;
-			}
-
-			move(delta);
-		} else if (delta > DEADBAND) {
-			if (!lastDir) {
-				blocking = true;
-				blockingCount = SERVO_STOP_CYCLES;
-				lastDir = !lastDir;
-				return;
-			}
-
-			move(delta);
-		} else {
-			stop();
-		}
+		stop();
+		return 0;
 	}
-	lastPos = curPos;
 }
 
 ISR(PCINT0_vect) {
@@ -260,10 +223,10 @@ ISR(PCINT0_vect) {
 
 	//Channel 1
 	if (digitalRead(PIN_RECEIVER)) {
-		last_flank = 1;
 		upflank_time = current_time_int0;
-	} else if (last_flank == 1) {
-		last_flank = 0;
-		raw_inputs = current_time_int0 - upflank_time;
+	} else  {
+		if(current_time_int0 > upflank_time){
+			raw_inputs =  current_time_int0 - upflank_time;
+		}
 	}
 }

@@ -4,16 +4,21 @@
 #include <OneWire.h>
 #include <Arduino.h>
 
-byte last_flank[NUM_CHANNELS];
+byte last_flank_rank0[NUM_CHANNELS];
+byte last_flank_rank2[NUM_HALL_SENSORS];
 
 volatile int receiver_input[NUM_CHANNELS];
 volatile int raw_inputs[NUM_CHANNELS];
+volatile int raw_inputs_rank2[NUM_HALL_SENSORS];
 
 //not volatile only interrupt handler
-unsigned long current_time_int0, upflank_time[NUM_CHANNELS];
+unsigned long current_time_int0, current_time_int_rank2, upflank_time0[NUM_CHANNELS], upflank_time_rank2[NUM_HALL_SENSORS];
 unsigned long loop_timer, curTime;
 byte mode, buf[8];
 int motorPower, throttleAvrg, calibrateCount = 0;
+float currentSpeed = 0;
+unsigned long nextSpeedCheck = 0;
+volatile unsigned int vlkss = 0;
 bool enabled, forward, fastModeAvailable;
 
 APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
@@ -23,6 +28,10 @@ void out(int idx, byte r, byte g, byte b) {
 	leds[idx].red = r;
 	leds[idx].green = g;
 	leds[idx].blue = b;
+}
+
+void countvri(){
+	vlkss++;
 }
 
 void setup() {
@@ -39,6 +48,12 @@ void setup() {
 	PCICR |= (1 << PCIE0);          //Set PCIE0 to enable PCMSK0 scan.
 	PCMSK0 |= 0x0F;
 
+	PCICR |= (1 << PCIE2);
+	PCMSK2 |= 0x03;
+	//88  PK1 ADC9  PCINT17   Analog pin 09
+	//89  PK0 ADC8  PCINT16   Analog pin 08
+
+
 	// each begin hangs until module is connected
 	vorne_links.begin(0x60, &sw1);
 	vorne_rechts.begin(0x60, &sw2);
@@ -53,7 +68,7 @@ void setup() {
 
 	throttleAvrg = 1500;
 	forward = true;
-
+	nextSpeedCheck = millis();
 	startup();
 	fail();
 }
@@ -67,7 +82,9 @@ void stopMotors() {
 }
 
 void handleNormalThrust() {
-	out(1, 0, 0, map(raw_inputs[THROTTLE], 1520, 2000, 0, 255));
+	long int tledLevel;
+	tledLevel = map(raw_inputs[THROTTLE], 1520, 2000, 0, 255);
+	out(1, 0, forward ? tledLevel : 0, forward ? 0 : tledLevel);
 
 	int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
 	vorne_links.setVoltage(thr);
@@ -123,9 +140,23 @@ void handleModeInput() {
 	}
 }
 
+void checkSpeed(){
+	nextSpeedCheck = millis()+1000;
+	Serial.print("Speed per second ");
+	Serial.println(vlkss);
+	vlkss = 0;
+//	vrkss = 0;
+//	hlkss = 0;
+//	hrkss = 0;
+}
+
 void loop() {
-	//todo read from hall sensors
-	int currentSpeed = 0;
+	Serial.print("Test ");
+	Serial.print(raw_inputs_rank2[HALL_SENSOR2]);
+	Serial.println();
+	if(nextSpeedCheck < millis()){
+//		checkSpeed();
+	}
 
 	if (enabled) {
 		throttleAvrg = throttleAvrg * 0.9 + raw_inputs[THROTTLE] * 0.1;
@@ -146,10 +177,10 @@ void loop() {
 		updateTurningStatusLED();
 
 		unsigned long tmp[4];
-		tmp[0] = upflank_time[0];
-		tmp[1] = upflank_time[1];
-		tmp[2] = upflank_time[2];
-		tmp[3] = upflank_time[3];
+		tmp[0] = upflank_time0[0];
+		tmp[1] = upflank_time0[1];
+		tmp[2] = upflank_time0[2];
+		tmp[3] = upflank_time0[3];
 
 		bool error = false;
 		curTime = micros();
@@ -296,50 +327,76 @@ void fail() {
 	digitalWrite(PIN_IBUTTON_LED, HIGH);
 }
 
+ISR(PCINT2_vect) {
+	current_time_int_rank2 = micros();
+
+	//Sensor 1
+	if (PINK & B00000001) {
+		if (last_flank_rank2[HALL_SENSOR1] == 0) {
+			last_flank_rank2[HALL_SENSOR1] = 1;
+			upflank_time_rank2[HALL_SENSOR1] = current_time_int_rank2;
+		}
+	} else if (last_flank_rank2[HALL_SENSOR1] == 1) {
+		last_flank_rank2[HALL_SENSOR1] = 0;
+		raw_inputs_rank2[HALL_SENSOR1] = current_time_int_rank2 - upflank_time_rank2[HALL_SENSOR1];
+	}
+
+	//Sensor 2
+	if (PINK & B00000010) {
+		if (last_flank_rank2[HALL_SENSOR2] == 0) {
+			last_flank_rank2[HALL_SENSOR2] = 1;
+			upflank_time_rank2[HALL_SENSOR2] = current_time_int_rank2;
+		}
+	} else if (last_flank_rank2[HALL_SENSOR2] == 1) {
+		last_flank_rank2[HALL_SENSOR2] = 0;
+		raw_inputs_rank2[HALL_SENSOR2] = current_time_int_rank2 - upflank_time_rank2[HALL_SENSOR2];
+	}
+}
+
 ISR(PCINT0_vect) {
 	current_time_int0 = micros();
 
 //Channel 1
 	if (PINB & B00000001) {
-		if (last_flank[MODE] == 0) {
-			last_flank[MODE] = 1;
-			upflank_time[MODE] = current_time_int0;
+		if (last_flank_rank0[MODE] == 0) {
+			last_flank_rank0[MODE] = 1;
+			upflank_time0[MODE] = current_time_int0;
 		}
-	} else if (last_flank[MODE] == 1) {
-		last_flank[MODE] = 0;
-		raw_inputs[MODE] = current_time_int0 - upflank_time[MODE];
+	} else if (last_flank_rank0[MODE] == 1) {
+		last_flank_rank0[MODE] = 0;
+		raw_inputs[MODE] = current_time_int0 - upflank_time0[MODE];
 	}
 
 //Channel 2
 	if (PINB & B00000010) {
-		if (last_flank[FORWARD] == 0) {
-			last_flank[FORWARD] = 1;
-			upflank_time[FORWARD] = current_time_int0;
+		if (last_flank_rank0[FORWARD] == 0) {
+			last_flank_rank0[FORWARD] = 1;
+			upflank_time0[FORWARD] = current_time_int0;
 		}
-	} else if (last_flank[FORWARD] == 1) {
-		last_flank[FORWARD] = 0;
-		raw_inputs[FORWARD] = current_time_int0 - upflank_time[FORWARD];
+	} else if (last_flank_rank0[FORWARD] == 1) {
+		last_flank_rank0[FORWARD] = 0;
+		raw_inputs[FORWARD] = current_time_int0 - upflank_time0[FORWARD];
 	}
 
 //Channel 3
 	if (PINB & B00000100) {
-		if (last_flank[STEERING] == 0) {
-			last_flank[STEERING] = 1;
-			upflank_time[STEERING] = current_time_int0;
+		if (last_flank_rank0[STEERING] == 0) {
+			last_flank_rank0[STEERING] = 1;
+			upflank_time0[STEERING] = current_time_int0;
 		}
-	} else if (last_flank[STEERING] == 1) {
-		last_flank[STEERING] = 0;
-		raw_inputs[STEERING] = current_time_int0 - upflank_time[STEERING];
+	} else if (last_flank_rank0[STEERING] == 1) {
+		last_flank_rank0[STEERING] = 0;
+		raw_inputs[STEERING] = current_time_int0 - upflank_time0[STEERING];
 	}
 
 //Channel 4
 	if (PINB & B00001000) {
-		if (last_flank[THROTTLE] == 0) {
-			last_flank[THROTTLE] = 1;
-			upflank_time[THROTTLE] = current_time_int0;
+		if (last_flank_rank0[THROTTLE] == 0) {
+			last_flank_rank0[THROTTLE] = 1;
+			upflank_time0[THROTTLE] = current_time_int0;
 		}
-	} else if (last_flank[THROTTLE] == 1) {
-		last_flank[THROTTLE] = 0;
-		raw_inputs[THROTTLE] = current_time_int0 - upflank_time[THROTTLE];
+	} else if (last_flank_rank0[THROTTLE] == 1) {
+		last_flank_rank0[THROTTLE] = 0;
+		raw_inputs[THROTTLE] = current_time_int0 - upflank_time0[THROTTLE];
 	}
 }

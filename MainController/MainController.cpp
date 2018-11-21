@@ -12,7 +12,7 @@ volatile int raw_inputs[NUM_CHANNELS];
 volatile int raw_inputs_rank2[NUM_HALL_SENSORS];
 
 //not volatile only interrupt handler
-unsigned long current_time_int0, current_time_int_rank2, upflank_time0[NUM_CHANNELS], upflank_time_rank2[NUM_HALL_SENSORS];
+unsigned long current_time_int0, current_time_int_rank2, upflank_time0[NUM_CHANNELS];
 unsigned long loop_timer, curTime;
 byte mode, buf[8];
 int motorPower, throttleAvrg, calibrateCount = 0;
@@ -20,6 +20,7 @@ float currentSpeed = 0;
 unsigned long nextSpeedCheck = 0;
 volatile unsigned int vlkss = 0;
 bool enabled, forward, fastModeAvailable;
+float powerFactor = 1;
 
 APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
 rgb_color leds[LED_COUNT];
@@ -49,7 +50,7 @@ void setup() {
 	PCMSK0 |= 0x0F;
 
 	PCICR |= (1 << PCIE2);
-	PCMSK2 |= 0x03;
+	PCMSK2 |= 0x01;
 	//88  PK1 ADC9  PCINT17   Analog pin 09
 	//89  PK0 ADC8  PCINT16   Analog pin 08
 
@@ -86,7 +87,7 @@ void handleNormalThrust() {
 	tledLevel = map(raw_inputs[THROTTLE], 1520, 2000, 0, 255);
 	out(1, 0, forward ? tledLevel : 0, forward ? 0 : tledLevel);
 
-	int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095);
+	int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095) * powerFactor;
 	vorne_links.setVoltage(thr);
 	vorne_rechts.setVoltage(thr);
 	hinten_rechts.setVoltage(forward ? thr : 0);
@@ -141,21 +142,39 @@ void handleModeInput() {
 }
 
 void checkSpeed(){
-	nextSpeedCheck = millis()+1000;
-	Serial.print("Speed per second ");
-	Serial.println(vlkss);
-	vlkss = 0;
-//	vrkss = 0;
-//	hlkss = 0;
-//	hrkss = 0;
+	nextSpeedCheck = millis() + SPEED_AVERAGING_TIME;
+	Serial.print("Speed per ");
+	Serial.print(SPEED_AVERAGING_TIME);
+	Serial.print(" ");
+	float pulses = raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS];
+	pulses = pulses / HALL_PULSES_PER_ROTATION * WHEEL_DIAMETER_CM;
+	pulses = pulses / SPEED_AVERAGING_TIME * 36;
+	if(pulses > 1){
+		powerFactor = powerFactor - 0.1f;
+	}
+	if(pulses < 0.9){
+			powerFactor = powerFactor + 0.025f;
+	}
+
+	if(powerFactor < 0 ){
+		powerFactor = 0;
+	}
+	if(powerFactor > 1){
+		powerFactor = 1;
+	}
+
+	Serial.print(pulses);
+	Serial.print(" pf ");
+	Serial.println(powerFactor);
+	raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS] = 0;
 }
 
 void loop() {
-	Serial.print("Test ");
-	Serial.print(raw_inputs_rank2[HALL_SENSOR2]);
-	Serial.println();
+//	Serial.print("Test ");
+//	Serial.print(raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS]);
+//	Serial.println();
 	if(nextSpeedCheck < millis()){
-//		checkSpeed();
+		checkSpeed();
 	}
 
 	if (enabled) {
@@ -328,28 +347,8 @@ void fail() {
 }
 
 ISR(PCINT2_vect) {
-	current_time_int_rank2 = micros();
-
-	//Sensor 1
 	if (PINK & B00000001) {
-		if (last_flank_rank2[HALL_SENSOR1] == 0) {
-			last_flank_rank2[HALL_SENSOR1] = 1;
-			upflank_time_rank2[HALL_SENSOR1] = current_time_int_rank2;
-		}
-	} else if (last_flank_rank2[HALL_SENSOR1] == 1) {
-		last_flank_rank2[HALL_SENSOR1] = 0;
-		raw_inputs_rank2[HALL_SENSOR1] = current_time_int_rank2 - upflank_time_rank2[HALL_SENSOR1];
-	}
-
-	//Sensor 2
-	if (PINK & B00000010) {
-		if (last_flank_rank2[HALL_SENSOR2] == 0) {
-			last_flank_rank2[HALL_SENSOR2] = 1;
-			upflank_time_rank2[HALL_SENSOR2] = current_time_int_rank2;
-		}
-	} else if (last_flank_rank2[HALL_SENSOR2] == 1) {
-		last_flank_rank2[HALL_SENSOR2] = 0;
-		raw_inputs_rank2[HALL_SENSOR2] = current_time_int_rank2 - upflank_time_rank2[HALL_SENSOR2];
+		raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS] = raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS] +1;
 	}
 }
 

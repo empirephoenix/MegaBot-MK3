@@ -39,7 +39,7 @@ volatile int raw_inputs = 0;
 volatile long diff = 0;
 //not volatile only interrupt handler
 volatile unsigned long current_time_int0 = 0;
-volatile  unsigned long upflank_time = 0;
+volatile  unsigned long upflank_time0 = 0;
 
 void out(byte r, byte g, byte b) {
 	leds[0].red = r;
@@ -223,10 +223,10 @@ ISR(PCINT0_vect) {
 
 	//Channel 1
 	if (digitalRead(PIN_RECEIVER)) {
-		upflank_time = current_time_int0;
+		upflank_time0 = current_time_int0;
 	} else  {
-		if(current_time_int0 > upflank_time){
-			raw_inputs =  current_time_int0 - upflank_time;
+		if(current_time_int0 > upflank_time0){
+			raw_inputs =  current_time_int0 - upflank_time0;
 		}
 	}
 }

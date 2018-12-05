@@ -14,13 +14,13 @@ volatile int raw_inputs_rank2[NUM_HALL_SENSORS];
 //not volatile only interrupt handler
 unsigned long current_time_int0, current_time_int_rank2, upflank_time0[NUM_CHANNELS];
 unsigned long loop_timer, curTime;
-byte mode, buf[8];
+int mode = 2;
+byte buf[8];
 int motorPower, throttleAvrg, calibrateCount = 0;
 float currentSpeed = 0;
 unsigned long nextSpeedCheck = 0;
 volatile unsigned int vlkss = 0;
 bool enabled, forward, fastModeAvailable;
-float powerFactor = 1;
 
 APA102<PIN_LED_DATA, PIN_LED_CLOCK> ledStrip;
 rgb_color leds[LED_COUNT];
@@ -87,7 +87,32 @@ void handleNormalThrust() {
 	tledLevel = map(raw_inputs[THROTTLE], 1520, 2000, 0, 255);
 	out(1, 0, forward ? tledLevel : 0, forward ? 0 : tledLevel);
 
-	int thr = map(raw_inputs[THROTTLE], 1520, 2000, 1000, 4095) * powerFactor;
+	int rawThrottle = map(raw_inputs[THROTTLE], 1520, 2000, 0, 10000);
+	int thrLimited = 0;
+	if (mode == 2) {
+		thrLimited = rawThrottle * 0.1;
+	} else if (mode == 1) {
+		thrLimited = rawThrottle * 0.3;
+	} else if (mode == 0) {
+		thrLimited = rawThrottle;
+	}
+
+	bool forward2 =  raw_inputs[FORWARD] < 1250;
+	//want to change direction, but still moving
+	if(forward2 != forward){
+		thrLimited = 0;
+	}
+
+	Serial.println(thrLimited);
+	int thr = map(thrLimited, 0, 10000, 1000, 4095);
+
+	if(thr < 0){
+		thr = 0;
+	}
+	if(thr > 4095){
+		thr = 4095;
+	}
+
 	vorne_links.setVoltage(thr);
 	vorne_rechts.setVoltage(thr);
 	hinten_rechts.setVoltage(forward ? thr : 0);
@@ -113,9 +138,11 @@ void handlePause() {
 }
 
 void updateTurningStatusLED() {
-	if (raw_inputs[STEERING] > 1540) {
+	Serial.print("truning status");
+	Serial.println(raw_inputs[STEERING]);
+	if (raw_inputs[STEERING] > 1500) {
 		out(2, 0, 127, 0);
-	} else if (raw_inputs[STEERING] < 1460) {
+	} else if (raw_inputs[STEERING] < 1300) {
 		out(2, 127, 0, 0);
 	} else {
 		out(2, 127, 127, 127);
@@ -123,49 +150,30 @@ void updateTurningStatusLED() {
 }
 
 void handleModeInput() {
-	// Mode switch TODO: Later needed
-	if (fastModeAvailable) {
-		if (raw_inputs[MODE] > 1750) {
-			mode = 2;
-			out(0, 0, 127, 0);
-		} else if (raw_inputs[MODE] > 1250) {
-			mode = 1;
-			out(0, 0, 0, 127);
-		} else {
-			mode = 0;
-			out(0, 127, 0, 0);
-		}
-	} else {
+
+	if (raw_inputs[MODE] > 1750) {
 		mode = 2;
 		out(0, 0, 127, 0);
+	} else if (raw_inputs[MODE] > 1250) {
+		mode = 1;
+		out(0, 0, 0, 127);
+	} else {
+		mode = 0;
+		out(0, 127, 0, 0);
+	}
+	if (!fastModeAvailable && mode != 2) {
+		mode = 2;
+		out(0, 255, 0, 255);
 	}
 }
 
 void checkSpeed(){
 	nextSpeedCheck = millis() + SPEED_AVERAGING_TIME;
 	Serial.print("Speed per ");
-	Serial.print(SPEED_AVERAGING_TIME);
-	Serial.print(" ");
+	Serial.println(SPEED_AVERAGING_TIME);
 	float pulses = raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS];
 	pulses = pulses / HALL_PULSES_PER_ROTATION * WHEEL_DIAMETER_CM;
-	pulses = pulses / SPEED_AVERAGING_TIME * 36;
-	if(pulses > 1){
-		powerFactor = powerFactor - 0.1f;
-	}
-	if(pulses < 0.9){
-			powerFactor = powerFactor + 0.025f;
-	}
-
-	if(powerFactor < 0 ){
-		powerFactor = 0;
-	}
-	if(powerFactor > 1){
-		powerFactor = 1;
-	}
-
-	Serial.print(pulses);
-	Serial.print(" pf ");
-	Serial.println(powerFactor);
+	currentSpeed = pulses / SPEED_AVERAGING_TIME * 36;
 	raw_inputs_rank2[HALL_SENSOR_VORNE_RECHTS] = 0;
 }
 
@@ -355,8 +363,17 @@ ISR(PCINT2_vect) {
 ISR(PCINT0_vect) {
 	current_time_int0 = micros();
 
-//Channel 1
 	if (PINB & B00000001) {
+		if (last_flank_rank0[STEERING] == 0) {
+			last_flank_rank0[STEERING] = 1;
+			upflank_time0[STEERING] = current_time_int0;
+		}
+	} else if (last_flank_rank0[STEERING] == 1) {
+		last_flank_rank0[STEERING] = 0;
+		raw_inputs[STEERING] = current_time_int0 - upflank_time0[STEERING];
+	}
+//Channel 1
+	if (PINB & B00000100) {
 		if (last_flank_rank0[MODE] == 0) {
 			last_flank_rank0[MODE] = 1;
 			upflank_time0[MODE] = current_time_int0;
@@ -378,15 +395,7 @@ ISR(PCINT0_vect) {
 	}
 
 //Channel 3
-	if (PINB & B00000100) {
-		if (last_flank_rank0[STEERING] == 0) {
-			last_flank_rank0[STEERING] = 1;
-			upflank_time0[STEERING] = current_time_int0;
-		}
-	} else if (last_flank_rank0[STEERING] == 1) {
-		last_flank_rank0[STEERING] = 0;
-		raw_inputs[STEERING] = current_time_int0 - upflank_time0[STEERING];
-	}
+
 
 //Channel 4
 	if (PINB & B00001000) {
